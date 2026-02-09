@@ -60,7 +60,7 @@ Document = KnowledgeMetaData
 
 
 def contents_to_documents(contents: List[str], label: str = None) -> List[Document]:
-    # 使用配置的批次大小，避免硬编码
+    # Use configured batch size
     from quantaalpha.llm.config import LLM_SETTINGS
     size = LLM_SETTINGS.embedding_max_str_num
     embedding = []

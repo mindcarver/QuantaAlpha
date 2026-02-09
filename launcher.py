@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-QuantaAlpha 统一启动器
+QuantaAlpha unified launcher.
 
-用法：
-    python launcher.py mine --direction "价量因子挖掘"
-    python launcher.py mine --direction "动量反转" --config configs/experiment.yaml
+Usage:
+    python launcher.py mine --direction "price-volume factor mining"
+    python launcher.py mine --direction "momentum reversal" --config configs/experiment.yaml
     python launcher.py backtest --factor-source alpha158_20
     python launcher.py health_check
 """
@@ -12,7 +12,7 @@ QuantaAlpha 统一启动器
 import sys
 from pathlib import Path
 
-# 加载环境变量
+# Load environment variables
 from dotenv import load_dotenv
 
 _project_root = Path(__file__).resolve().parent
@@ -21,11 +21,11 @@ if _env_path.exists():
     load_dotenv(_env_path)
 else:
     print("=" * 60)
-    print("错误: 未找到 .env 配置文件")
+    print("Error: .env file not found")
     print()
-    print("请先创建配置文件:")
+    print("Please create config file:")
     print(f"  cp configs/.env.example .env")
-    print("  然后编辑 .env 填入你的数据路径和 API Key")
+    print("  Then edit .env with your data path and API Key")
     print("=" * 60)
     sys.exit(1)
 

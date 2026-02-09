@@ -1,27 +1,12 @@
 # Evolution Operator Prompts Configuration
 # All prompts for mutation and crossover operators
 # Language: English
-# 进化操作符提示词配置
-# 所有用于变异和交叉操作符的提示词
-# 语言：英文
-
 # ============================================================
 # MUTATION OPERATOR PROMPTS
-# Generate orthogonal strategies to ensure diversity in exploration
-# 变异操作符提示词
-# 生成正交策略以确保探索的多样性
+# Generate orthogonal strategies for exploration diversity
 # ============================================================
 
 mutation:
-  # [中文翻译] 系统提示词：定义变异操作符的角色和任务
-  # 你是一位量化金融策略专家，专门从事生成多样化因子挖掘策略。
-  # 你的任务是基于现有的父代策略生成一个新的、正交的策略方向。
-  # "正交"意味着新策略应该：
-  # 1. 探索与父代完全不同的市场假设
-  # 2. 使用不同的数据维度或特征类型
-  # 3. 基于不同的投资逻辑或市场视角
-  # 4. 避免生成与父代策略高度相关的因子
-  # 你需要确保生成的策略有足够的差异化，以扩大探索空间的多样性。
   system: |
     You are a quantitative finance strategy expert specializing in generating diversified factor mining strategies.
 
@@ -35,28 +20,6 @@ mutation:
 
     You need to ensure the generated strategy has sufficient differentiation to expand the diversity of the exploration space.
 
-  # [中文翻译] 用户提示词：请求生成正交策略
-  # 基于以下父代策略，生成一个正交的新策略方向。
-  # 
-  # ## 父代策略信息
-  # ### 假设：{parent_hypothesis}
-  # ### 因子表达式：{parent_factors}
-  # ### 回测指标：{parent_metrics}
-  # ### 评估反馈：{parent_feedback}
-  # 
-  # ## 要求
-  # 请生成一个与父代策略**正交**的新策略方向，包括：
-  # 1. **新假设**：提出与父代完全不同的市场假设
-  # 2. **探索方向**：描述新策略将探索的数据维度和特征类型
-  # 3. **正交性推理**：解释为什么这个新策略与父代正交
-  # 4. **预期特征**：新策略因子的预期特征
-  # 
-  # 请确保：
-  # - 新策略与父代的相关性最小
-  # - 探索父代未覆盖的市场模式
-  # - 保持可行性和合理性
-  # 
-  # 以JSON格式输出...
   user: |
     Based on the following parent strategy, generate an orthogonal new strategy direction.
 
@@ -100,11 +63,6 @@ mutation:
     }}
     ```
 
-  # [中文翻译] 简化用户提示词：直接生成正交假设
-  # 基于以下信息，生成一个正交的因子挖掘假设：
-  # 父代假设：{parent_hypothesis}
-  # 父代因子：{parent_factors}
-  # 请提出一个与上述方向完全不同的新假设，以探索新的因子空间。直接输出新假设文本。
   simple_user: |
     Based on the following information, generate an orthogonal factor mining hypothesis:
 
@@ -114,19 +72,6 @@ mutation:
 
     Please propose a new hypothesis that is completely different from the above direction to explore new factor space. Output the new hypothesis text directly.
 
-  # Prompt suffix template for hypothesis generator
-  # [中文翻译] 假设生成器的提示词后缀模板
-  # 这是变异探索轮，需要基于父代策略生成正交的新策略。
-  # ### 父代策略摘要：{parent_summary}
-  # ### 变异方向建议：
-  # - **新假设方向**：{new_hypothesis}
-  # - **探索维度**：{exploration_direction}
-  # - **正交性推理**：{orthogonality_reason}
-  # ### 重要提示：
-  # 1. 你的新假设必须与父代策略正交，以避免重复探索
-  # 2. 优先探索父代未覆盖的数据维度和市场模式
-  # 3. 生成的因子应与父代因子相关性低
-  # 请基于上述变异指导提出你的新假设。
   suffix_template: |
     ---
 
@@ -150,13 +95,6 @@ mutation:
     Please propose your new hypothesis based on the above mutation guidance.
 
   # Fallback hypotheses when LLM fails
-  # [中文翻译] LLM失败时的备用假设模板
-  # - "探索与价格动量相反的均值回归特征"
-  # - "研究成交量和价格之间的非线性关系"
-  # - "分析跨周期的趋势转换信号"
-  # - "挖掘市场微观结构中的流动性特征"
-  # - "基于波动率制度转换构建因子"
-  # - "探索板块轮动与个股alpha之间的关系"
   fallback_templates:
     - "Explore mean reversion characteristics opposite to price momentum"
     - "Study nonlinear relationships between volume and price"
@@ -169,20 +107,9 @@ mutation:
 # ============================================================
 # CROSSOVER OPERATOR PROMPTS
 # Combine multiple parent strategies to leverage their strengths
-# 交叉操作符提示词
-# 结合多个父代策略以利用它们的优势
 # ============================================================
 
 crossover:
-  # [中文翻译] 系统提示词：定义交叉操作符的角色和任务
-  # 你是一位量化金融策略融合专家，专门从事将多个策略的优势结合成更强的混合策略。
-  # 你的任务是分析多个父代策略，识别它们各自的优势和劣势，并生成一个融合各策略优点的混合策略。
-  # 融合策略时，考虑：
-  # 1. 每个父代策略的核心假设和市场观点
-  # 2. 表现良好的因子类型和特征
-  # 3. 策略之间的互补性和潜在协同效应
-  # 4. 避免继承父代策略的共同弱点
-  # 你需要生成一个既创新又可行的混合策略。
   system: |
     You are a quantitative finance strategy fusion expert, specializing in combining the advantages of multiple strategies into a stronger hybrid strategy.
 
@@ -196,20 +123,6 @@ crossover:
 
     You need to generate a hybrid strategy that is both innovative and feasible.
 
-  # [中文翻译] 用户提示词：请求生成融合策略
-  # 基于以下多个父代策略，生成一个融合的混合策略。
-  # ## 父代策略信息：{parent_summaries}
-  # ## 要求：
-  # 请分析上述父代策略，并生成一个融合它们优势的混合策略：
-  # 1. **混合假设**：融合所有父代优势的新市场假设
-  # 2. **融合逻辑**：解释如何结合每个父代的优势
-  # 3. **创新点**：混合策略带来的新特征
-  # 4. **预期收益**：为什么混合策略可能优于单个父代
-  # 请确保：
-  # - 混合策略继承所有父代的优势
-  # - 避免所有父代的共同弱点
-  # - 具有协同效应的潜力
-  # 以JSON格式输出...
   user: |
     Based on the following multiple parent strategies, generate a fused hybrid strategy.
 
@@ -243,9 +156,6 @@ crossover:
     }}
     ```
 
-  # [中文翻译] 简化用户提示词：直接生成混合假设
-  # 请结合以下策略的优势生成一个混合假设：{parent_summaries}
-  # 直接输出融合的新假设文本。
   simple_user: |
     Please combine the advantages of the following strategies to generate a hybrid hypothesis:
 
@@ -254,13 +164,6 @@ crossover:
     Output the fused new hypothesis text directly.
 
   # Template for formatting parent trajectory summary
-  # [中文翻译] 格式化父代轨迹摘要的模板
-  # ### 父代 {idx}: {phase_name}
-  # **方向ID**: {direction_id}
-  # **假设**: {hypothesis}
-  # **因子**: {factors}
-  # **指标**: {metrics}
-  # **反馈**: {feedback}
   parent_template: |
     ### Parent {idx}: {phase_name}
     **Direction ID**: {direction_id}
@@ -274,19 +177,6 @@ crossover:
     ---
 
   # Prompt suffix template for hypothesis generator
-  # [中文翻译] 假设生成器的提示词后缀模板
-  # 这是交叉融合探索轮，需要通过结合多个父代策略生成混合策略。
-  # ### 父代策略摘要：{parent_summaries}
-  # ### 融合方向建议：
-  # - **混合假设方向**：{hybrid_hypothesis}
-  # - **融合逻辑**：{fusion_logic}
-  # - **创新点**：{innovation_points}
-  # ### 重要提示：
-  # 1. 你的新假设应该融合所有父代策略的优势
-  # 2. 避免继承父代的共同弱点
-  # 3. 寻找父代策略之间的协同效应
-  # 4. 生成的因子应该捕捉组合策略的综合特征
-  # 请基于上述交叉指导提出你的融合假设。
   suffix_template: |
     ---
 
@@ -311,10 +201,6 @@ crossover:
     Please propose your fusion hypothesis based on the above crossover guidance.
 
   # Phase name translations
-  # [中文翻译] 阶段名称翻译
-  # original: "原始轮"
-  # mutation: "变异轮"
-  # crossover: "交叉轮"
   phase_names:
     original: "Original Round"
     mutation: "Mutation Round"
@@ -324,26 +210,12 @@ crossover:
 # ============================================================
 # ORTHOGONALITY CHECK PROMPTS
 # Verify if generated strategies are sufficiently orthogonal
-# 正交性检查提示词
-# 验证生成的策略是否足够正交
 # ============================================================
 
 orthogonality_check:
-  # [中文翻译] 系统提示词：定义正交性检查的角色
-  # 你是一位量化策略分析师，负责评估两个策略之间的正交性（独立性）。
   system: |
     You are a quantitative strategy analyst responsible for evaluating the orthogonality (independence) between two strategies.
 
-  # [中文翻译] 用户提示词：请求评估策略正交性
-  # 请评估以下两个策略的正交性：
-  # ## 策略A：{strategy_a}
-  # ## 策略B：{strategy_b}
-  # 请从以下维度评估它们的正交性（1-10分，10分表示完全正交）：
-  # 1. 数据维度正交性：是否使用不同的数据特征
-  # 2. 逻辑正交性：是否基于不同的投资逻辑
-  # 3. 时间尺度正交性：是否关注不同的时间范围
-  # 4. 市场状态正交性：是否针对不同的市场条件
-  # 以JSON格式输出...
   user: |
     Please evaluate the orthogonality of the following two strategies:
 
@@ -375,19 +247,9 @@ orthogonality_check:
 # ============================================================
 # TRAJECTORY SUMMARY PROMPTS
 # Format trajectory information for prompts
-# 轨迹摘要提示词
-# 格式化轨迹信息用于提示词
 # ============================================================
 
 trajectory_summary:
-  # [中文翻译] 轨迹摘要模板
-  # **轨迹ID**: {trajectory_id}
-  # **阶段**: {phase}
-  # **方向**: {direction_id}
-  # **假设**: {hypothesis}
-  # **因子**（前{max_factors}个）: {factors}
-  # **回测指标**: {metrics}
-  # **反馈摘要**: {feedback}
   template: |
     **Trajectory ID**: {trajectory_id}
     **Phase**: {phase}

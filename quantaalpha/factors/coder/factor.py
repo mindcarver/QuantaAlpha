@@ -127,7 +127,7 @@ class FactorFBWorkspace(FBWorkspace):
             else:
                 return self.FB_CODE_NOT_SET, None
         with FileLock(self.workspace_path / "execution.lock"):
-            # 设置数据路径 - 对所有版本都需要
+            # Set data path for all versions
             source_data_path = (
                 Path(
                     FACTOR_COSTEER_SETTINGS.data_folder_debug,
@@ -138,7 +138,7 @@ class FactorFBWorkspace(FBWorkspace):
                 )
             )
 
-            # 确保使用绝对路径
+            # Use absolute path
             if not source_data_path.is_absolute():
                 source_data_path = self.workspace_path.parent.parent.parent / source_data_path
             else:
@@ -147,7 +147,7 @@ class FactorFBWorkspace(FBWorkspace):
             source_data_path.mkdir(exist_ok=True, parents=True)
             code_path = self.workspace_path / f"factor.py"
 
-            # 确保数据路径存在且有文件
+            # Ensure data path exists and has files
             if source_data_path.exists() and any(source_data_path.iterdir()):
                 self.link_all_files_in_folder_to_workspace(source_data_path, self.workspace_path)
             else:

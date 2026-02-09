@@ -1,8 +1,8 @@
 # =============================================================================
-# QuantaAlpha 小回测配置 - 基线版本（第一轮，仅使用基础因子）
+# QuantaAlpha small backtest config - baseline (first round, base factors only)
 #
-# 与组合因子版本保持一致的预处理和模型参数，
-# 仅使用 QlibDataLoader（不含挖掘因子）。
+# Same preprocessing and model params as combined-factor version;
+# uses QlibDataLoader only (no mined factors).
 # =============================================================================
 
 qlib_init:

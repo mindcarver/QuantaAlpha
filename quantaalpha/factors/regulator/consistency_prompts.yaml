@@ -1,6 +1,6 @@
 # ============================================================
 # Factor Consistency Check Prompts
-# 因子一致性检验提示词
+# Factor consistency check prompts
 # ============================================================
 
 consistency_check_system: |-
@@ -78,7 +78,7 @@ consistency_check_user: |-
 
 # ============================================================
 # Factor Correction Prompts (when inconsistency is found)
-# 因子修正提示词（当发现不一致时）
+# Factor correction prompts (when inconsistency found)
 # ============================================================
 
 expression_correction_system: |-

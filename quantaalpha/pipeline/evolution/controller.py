@@ -33,14 +33,10 @@ class EvolutionConfig:
     # Maximum total rounds (original + mutation + crossover rounds)
     max_rounds: int = 10
     
-    # Enable/disable mutation phase
-    # 启用/禁用变异阶段
-    # When false, evolution will skip mutation rounds entirely
+    # Enable/disable mutation phase; when false, skip mutation rounds entirely
     mutation_enabled: bool = True
-    
-    # Enable/disable crossover phase
-    # 启用/禁用交叉阶段
-    # When false, evolution will skip crossover rounds entirely
+
+    # Enable/disable crossover phase; when false, skip crossover rounds entirely
     crossover_enabled: bool = True
     
     # Crossover parameters
@@ -50,21 +46,13 @@ class EvolutionConfig:
     # Whether to prefer diverse crossover combinations
     prefer_diverse_crossover: bool = True
     
-    # Parent selection strategy for crossover
-    # 父代选择策略：
-    # - "best": 优先选择表现最好的轨迹
-    # - "random": 随机选择
-    # - "weighted": 性能加权采样（性能越高权重越高）
-    # - "weighted_inverse": 逆性能加权采样（性能越低权重越高，鼓励探索）
-    # - "top_percent_plus_random": 评价前 N% 一定被选中，剩余随机填充
+    # Parent selection for crossover: best | random | weighted | weighted_inverse | top_percent_plus_random
     parent_selection_strategy: str = "best"
-    
-    # Top percent threshold (used when parent_selection_strategy = "top_percent_plus_random")
-    # 前百分比阈值
+
+    # Top percent threshold when parent_selection_strategy = "top_percent_plus_random"
     top_percent_threshold: float = 0.3
-    
-    # Whether to enable parallel execution within each round
-    # 是否启用轮次内并行执行
+
+    # Enable parallel execution within each round
     parallel_enabled: bool = False
     
     # Path to save trajectory pool
@@ -74,8 +62,7 @@ class EvolutionConfig:
     mutation_prompt_path: Optional[str] = None
     crossover_prompt_path: Optional[str] = None
     
-    # Whether to start with an empty trajectory pool
-    # 是否从空轨迹池开始（忽略已有数据）
+    # Start with empty trajectory pool (ignore existing data)
     fresh_start: bool = True
 
 

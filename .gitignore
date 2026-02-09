@@ -90,6 +90,7 @@ all_factors_library*.json
 .ipynb_checkpoints/
 
 # ---- Node.js (frontend) ----
+frontend-v2/
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -119,7 +120,7 @@ release-notes.md
 *_analysis*.csv
 *_analysis*.json
 *qlib_res.csv
-注意事项.md
+# Local notes file (optional filename)
 
 # ---- Translations ----
 *.mo

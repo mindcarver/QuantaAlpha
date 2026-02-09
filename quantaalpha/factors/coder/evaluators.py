@@ -47,8 +47,7 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
         )
     
     def extract_expr(self, code_str: str) -> str:
-        """从代码字符串中提取expr表达式"""
-        # 使用正则表达式匹配expr = "xxx"或expr = 'xxx'的模式
+        """Extract expr from code string (expr = \"...\" or expr = '...')."""
         pattern = r'expr\s*=\s*["\']([^"\']*)["\']'
         match = re.search(pattern, code_str)
         if match:
@@ -57,15 +56,8 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
             return ""
     
     def check_ast_regularization(self, implementation: Workspace) -> tuple[bool, str]:
-        """
-        检查因子表达式是否符合AST正则化条件
-        
-        Returns:
-            tuple[bool, str]: (是否符合条件, 反馈信息)
-        """
+        """Check if factor expression meets AST regularization. Returns (ok, feedback)."""
         try:
-            # 从代码中提取因子表达式
-            # Workspace对象通常有code_dict属性，其中包含'factor.py'
             if hasattr(implementation, 'code_dict') and 'factor.py' in implementation.code_dict:
                 code = implementation.code_dict['factor.py']
             elif hasattr(implementation, 'code'):
@@ -76,25 +68,21 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
             expr = self.extract_expr(code)
             
             if not expr:
-                return True, ""  # 如果无法提取表达式，跳过正则化检查
+                return True, ""
             
-            # 检查表达式是否可解析
             if not self.factor_regulator.is_parsable(expr):
                 return False, f"AST Regularization Check Failed: Expression cannot be parsed: {expr}"
             
-            # 评估表达式
             success, eval_dict = self.factor_regulator.evaluate(expr)
             if not success:
                 return False, f"AST Regularization Check Failed: Failed to evaluate expression: {expr}"
             
-            # 检查表达式是否可接受
             is_acceptable = self.factor_regulator.is_expression_acceptable(eval_dict)
             
             if not is_acceptable:
-                # 构建详细的反馈信息
                 feedback_parts = []
                 
-                # 条件1: 新颖性检查（仅在因子库存在时检查）
+                # Novelty (only when factor zoo exists)
                 dup_size = eval_dict.get('duplicated_subtree_size', 0)
                 dup_threshold = self.factor_regulator.duplication_threshold
                 has_factor_zoo = self.factor_regulator.factor_zoo_path is not None and len(self.factor_regulator.alphazoo) > 0
@@ -107,13 +95,12 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
                         f"Matched with: {matched_alpha}. Duplicated subtree: {duplicated_subtree}"
                     )
                 elif not has_factor_zoo:
-                    # 如果没有因子库，记录但不算失败
                     feedback_parts.append(
                         f"Note: Novelty check skipped (no factor zoo provided). "
                         f"Duplicated subtree size: {dup_size}"
                     )
                 
-                # 条件2: 自由参数比例检查
+                # Free args ratio
                 num_free_args = eval_dict.get('num_free_args', 0)
                 num_all_nodes = eval_dict.get('num_all_nodes', 0)
                 if num_all_nodes > 0:
@@ -125,7 +112,7 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
                             f"This indicates the factor is over-parameterized."
                         )
                 
-                # 条件3: 唯一变量比例检查
+                # Unique vars ratio
                 num_unique_vars = eval_dict.get('num_unique_vars', 0)
                 if num_all_nodes > 0:
                     unique_vars_ratio = num_unique_vars / num_all_nodes
@@ -136,7 +123,7 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
                             f"This indicates the factor lacks diversity."
                         )
                 
-                # 条件4: 符号长度检查（SL）
+                # Symbol length (SL)
                 symbol_length = eval_dict.get('symbol_length', 0)
                 symbol_length_threshold = self.factor_regulator.symbol_length_threshold
                 if symbol_length > symbol_length_threshold:
@@ -146,7 +133,7 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
                         f"Please simplify the expression to reduce structural complexity."
                     )
                 
-                # 条件5: 基础特征使用量检查（ER）
+                # Base features (ER)
                 num_base_features = eval_dict.get('num_base_features', 0)
                 base_features_threshold = self.factor_regulator.base_features_threshold
                 if num_base_features > base_features_threshold:
@@ -156,7 +143,7 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
                         f"which may indicate over-engineering. Please reduce the number of distinct base features used."
                         )
                 
-                # 只有当有实际失败的条件时才返回False
+                # Only return False when there are real failures
                 has_failures = (
                     (has_factor_zoo and dup_size > dup_threshold) or
                     (num_all_nodes > 0 and num_free_args / num_all_nodes >= 0.5) or
@@ -169,14 +156,12 @@ class FactorEvaluatorForCoder(CoSTEEREvaluator):
                     feedback = "AST Regularization Check Failed:\n" + "\n".join(feedback_parts)
                     return False, feedback
                 else:
-                    # 只有note信息，不算失败
                     return True, "\n".join(feedback_parts)
             else:
                 return True, "AST Regularization Check Passed"
                 
         except Exception as e:
             logger.warning(f"AST regularization check failed with exception: {e}")
-            # 如果检查过程出错，不阻止因子通过（容错处理）
             return True, f"AST Regularization Check Skipped: {str(e)}"
 
     def evaluate(

@@ -52,13 +52,8 @@ def classify_report_from_dict(
     """
     # if len(substrings) == 0:
     #     substrings = (
-    #         "金融工程",
-    #         "金工",
-    #         "回测",
-    #         "因子",
-    #         "机器学习",
-    #         "深度学习",
-    #         "量化",
+    #         "financial engineering", "quant", "backtest", "factor",
+    #         "machine learning", "deep learning", "quantitative",
     #     )
 
     res_dict = {}
@@ -439,7 +434,7 @@ def __kmeans_embeddings(embeddings: np.ndarray, k: int = 20) -> list[list[str]]:
         new_centroids = np.array(
             [x_normalized[closest_clusters == i].mean(axis=0) for i in range(k)],
         )
-        new_centroids = normalize(new_centroids)  # 归一化新的簇中心
+        new_centroids = normalize(new_centroids)  # normalize new centroids
 
         # Check whether the cluster center has changed
         if np.allclose(centroids, new_centroids):

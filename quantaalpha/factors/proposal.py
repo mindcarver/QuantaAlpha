@@ -16,15 +16,13 @@ import pandas as pd
 from quantaalpha.log import logger
 from quantaalpha.factors.regulator.factor_regulator import FactorRegulator
 
-# 默认历史记录数量和最小值
 DEFAULT_HISTORY_LIMIT = 6
 MIN_HISTORY_LIMIT = 1
 
 
 def render_hypothesis_and_feedback(prompt_dict, trace: Trace, history_limit: int = DEFAULT_HISTORY_LIMIT) -> str:
-    """渲染 hypothesis_and_feedback，支持动态调整历史记录数量"""
+    """Render hypothesis_and_feedback with configurable history limit."""
     if len(trace.hist) > 0:
-        # 限制历史记录数量
         limited_trace = Trace(scen=trace.scen)
         limited_trace.hist = trace.hist[-history_limit:] if history_limit > 0 else trace.hist
         return (
@@ -37,7 +35,7 @@ def render_hypothesis_and_feedback(prompt_dict, trace: Trace, history_limit: int
 
 
 def is_input_length_error(error_msg: str) -> bool:
-    """检查是否是输入长度超限错误"""
+    """Check if error is due to input length limit."""
     error_indicators = [
         "input length",
         "context length", 
@@ -200,7 +198,7 @@ class QlibFactorHypothesis2Experiment(FactorHypothesis2Experiment):
 
 qa_prompt_dict = Prompts(file_path=Path(__file__).parent / "prompts" / "prompts.yaml")
 
-# prompt_dict不能作为属性，因为后续整个类的实例要被转为pickle，而prompt_dict不能转
+# prompt_dict not as attribute: class instance is pickled later, prompt_dict cannot be pickled
 class AlphaAgentHypothesisGen(FactorHypothesisGen):
     def __init__(self, scen: Scenario, potential_direction: str=None) -> Tuple[dict, bool]:
         super().__init__(scen)
@@ -232,11 +230,10 @@ class AlphaAgentHypothesisGen(FactorHypothesisGen):
 
     def convert_response(self, response: str) -> AlphaAgentHypothesis:
         """
-        将大模型返回的 JSON 结果转换为 AlphaAgentHypothesis。
-        为了增强鲁棒性，这里对缺失字段使用默认空字符串，避免 KeyError 中断整个实验流程。
+        Convert LLM JSON to AlphaAgentHypothesis; use default empty string for missing fields to avoid KeyError.
         """
         response_dict = robust_json_parse(response)
-        # 使用 get 防止部分字段缺失导致 KeyError
+        # Use get to avoid KeyError on missing fields
         hypothesis = AlphaAgentHypothesis(
             hypothesis=response_dict.get("hypothesis", ""),
             concise_observation=response_dict.get("concise_observation", ""),
@@ -247,7 +244,7 @@ class AlphaAgentHypothesisGen(FactorHypothesisGen):
         return hypothesis
     
     def gen(self, trace: Trace) -> AlphaAgentHypothesis:
-        """生成假设，支持动态调整历史记录数量以应对输入长度超限"""
+        """Generate hypothesis; supports dynamic history limit for input length."""
         history_limit = DEFAULT_HISTORY_LIMIT
         
         while history_limit >= MIN_HISTORY_LIMIT:
@@ -281,11 +278,11 @@ class AlphaAgentHypothesisGen(FactorHypothesisGen):
             except Exception as e:
                 if is_input_length_error(str(e)) and history_limit > MIN_HISTORY_LIMIT:
                     history_limit -= 1
-                    logger.warning(f"输入长度超限，减少历史记录数量到 {history_limit} 条后重试...")
+                    logger.warning(f"Input length exceeded, retrying with history_limit={history_limit}...")
                 else:
                     raise
         
-        # 如果所有重试都失败，使用最小历史记录数量再尝试一次
+        # Last attempt with minimum history limit
         context_dict, json_flag = self.prepare_context(trace, MIN_HISTORY_LIMIT)
         system_prompt = (
             Environment(undefined=StrictUndefined)
@@ -354,7 +351,7 @@ class AlphaAgentHypothesis2FactorExpression(FactorHypothesis2Experiment):
         
     @property
     def quality_gate(self):
-        """延迟加载 FactorQualityGate"""
+        """Lazy-load FactorQualityGate."""
         if self._quality_gate is None and self.consistency_enabled:
             try:
                 from quantaalpha.factors.regulator.consistency_checker import FactorQualityGate
@@ -364,7 +361,7 @@ class AlphaAgentHypothesis2FactorExpression(FactorHypothesis2Experiment):
                     redundancy_enabled=True
                 )
             except ImportError as e:
-                logger.warning(f"无法加载一致性检验模块: {e}")
+                logger.warning(f"Could not load consistency checker: {e}")
                 self._quality_gate = None
         return self._quality_gate
         
@@ -393,7 +390,7 @@ class AlphaAgentHypothesis2FactorExpression(FactorHypothesis2Experiment):
         }, True
         
     def convert(self, hypothesis: Hypothesis, trace: Trace) -> Experiment:
-        """转换假设为因子表达式，支持动态调整历史记录数量以应对输入长度超限"""
+        """Convert hypothesis to factor expressions; supports dynamic history limit."""
         history_limit = DEFAULT_HISTORY_LIMIT
         
         while history_limit >= MIN_HISTORY_LIMIT:
@@ -402,15 +399,15 @@ class AlphaAgentHypothesis2FactorExpression(FactorHypothesis2Experiment):
             except Exception as e:
                 if is_input_length_error(str(e)) and history_limit > MIN_HISTORY_LIMIT:
                     history_limit -= 1
-                    logger.warning(f"输入长度超限，减少历史记录数量到 {history_limit} 条后重试...")
+                    logger.warning(f"Input length exceeded, retrying with history_limit={history_limit}...")
                 else:
                     raise
         
-        # 如果所有重试都失败了，使用最小历史记录数量再尝试一次
+        # Last attempt with minimum history limit
         return self._convert_with_history_limit(hypothesis, trace, MIN_HISTORY_LIMIT)
     
     def _convert_with_history_limit(self, hypothesis: Hypothesis, trace: Trace, history_limit: int) -> Experiment:
-        """使用指定历史记录数量进行转换"""
+        """Convert with given history limit."""
         context, json_flag = self.prepare_context(hypothesis, trace, history_limit)
         system_prompt = (
             Environment(undefined=StrictUndefined)
@@ -446,7 +443,7 @@ class AlphaAgentHypothesis2FactorExpression(FactorHypothesis2Experiment):
             try:
                 response_dict = robust_json_parse(resp)
             except json.JSONDecodeError as e:
-                logger.warning(f"JSON 解析失败: {e}, 重试中...")
+                logger.warning(f"JSON parse failed: {e}, retrying...")
                 continue
             proposed_names = []
             proposed_exprs = []
@@ -469,7 +466,7 @@ class AlphaAgentHypothesis2FactorExpression(FactorHypothesis2Experiment):
                 if not success:
                     break
                 
-                # 一致性检验（如果启用）
+                # Consistency check (if enabled)
                 if self.consistency_enabled and self.quality_gate is not None:
                     try:
                         passed, feedback, results = self.quality_gate.evaluate(
@@ -481,26 +478,25 @@ class AlphaAgentHypothesis2FactorExpression(FactorHypothesis2Experiment):
                             variables=variables
                         )
                         
-                        # 如果一致性检验提供了修正后的表达式，使用它
+                        # Use corrected expression from consistency check if provided
                         if results.get("corrected_expression") and results["corrected_expression"] != expr:
-                            logger.info(f"一致性检验修正表达式: {expr} -> {results['corrected_expression']}")
+                            logger.info(f"Consistency check corrected expression: {expr} -> {results['corrected_expression']}")
                             expr = results["corrected_expression"]
                             factor_data["expression"] = expr
                             response_dict[factor_name] = factor_data
                             
-                            # 重新检查修正后的表达式
+                            # Re-check corrected expression
                             if not self.factor_regulator.is_parsable(expr):
-                                logger.warning(f"修正后的表达式无法解析: {expr}")
+                                logger.warning(f"Corrected expression could not be parsed: {expr}")
                                 break
                             success, eval_dict = self.factor_regulator.evaluate(expr)
                             if not success:
                                 break
                         
                         if not passed:
-                            logger.warning(f"一致性检验未通过: {factor_name}, 反馈: {feedback}")
-                            # 根据严重程度决定是否继续（这里选择记录但继续处理）
+                            logger.warning(f"Consistency check failed: {factor_name}, feedback: {feedback}")
                     except Exception as e:
-                        logger.warning(f"一致性检验出错: {e}")
+                        logger.warning(f"Consistency check error: {e}")
                 
                 # If expression has problems, regenerate with feedback
                 if not self.factor_regulator.is_expression_acceptable(eval_dict):

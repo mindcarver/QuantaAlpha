@@ -1,17 +1,17 @@
 """
-QuantaAlpha CLI 入口
+QuantaAlpha CLI entry.
 
-提供以下命令:
-  quantaalpha mine       - 运行因子挖掘实验
-  quantaalpha backtest   - 运行因子回测
-  quantaalpha ui         - 启动日志可视化 Web UI
-  quantaalpha health_check - 环境健康检查
+Commands:
+  quantaalpha mine       - run factor mining
+  quantaalpha backtest   - run backtest
+  quantaalpha ui         - start log Web UI
+  quantaalpha health_check - environment health check
 """
 
 from pathlib import Path
 from dotenv import load_dotenv
 
-# 加载 .env 配置文件（优先项目根目录，回退到当前目录）
+# Load .env (prefer project root, fallback to cwd)
 _project_root = Path(__file__).resolve().parents[1]
 _env_path = _project_root / ".env"
 if _env_path.exists():

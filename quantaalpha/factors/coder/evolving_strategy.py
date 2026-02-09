@@ -118,9 +118,8 @@ class FactorMultiProcessEvolvingStrategy(MultiProcessEvolvingStrategy):
         )
         queried_similar_successful_knowledge_to_render = queried_similar_successful_knowledge
         queried_similar_error_knowledge_to_render = queried_similar_error_knowledge
-        # 动态地防止prompt超长
-        for _ in range(10):  # max attempt to reduce the length of user_prompt
-            # 总结error（可选）
+        for _ in range(10):
+            # Optional error summary
             if (
                 isinstance(queried_knowledge, CoSTEERQueriedKnowledgeV2)
                 and FACTOR_COSTEER_SETTINGS.v2_error_summary
@@ -134,8 +133,6 @@ class FactorMultiProcessEvolvingStrategy(MultiProcessEvolvingStrategy):
                 )
             else:
                 error_summary_critics = None
-            # 构建user_prompt。开始写代码
-            # 检查列表是否为空，避免 IndexError
             similar_successful_factor_description = ""
             similar_successful_expression = ""
             if len(queried_similar_successful_knowledge_to_render) > 0:
@@ -209,8 +206,7 @@ class FactorParsingStrategy(MultiProcessEvolvingStrategy):
         self.haveSelected = False
 
     def extract_expr(self, code_str: str) -> str:
-        """从代码字符串中提取expr表达式"""
-        # 使用正则表达式匹配expr = "xxx"或expr = 'xxx'的模式
+        """Extract expr from code (expr = \"...\" or expr = '...')."""
         pattern = r'expr\s*=\s*["\']([^"\']*)["\']'
         match = re.search(pattern, code_str)
         if match:
@@ -224,31 +220,15 @@ class FactorParsingStrategy(MultiProcessEvolvingStrategy):
         target_task: FactorTask,
         queried_knowledge: CoSTEERQueriedKnowledge,
     ) -> str:
-        """
-        实现单个因子任务的代码生成逻辑
-        
-        该函数有两种工作模式：
-        1. 首次执行时：直接使用模板生成代码
-        2. 之前有报错时：提供报错信息和成功/失败案例给LLM，由其重写表达式
-        
-        Args:
-            target_task: 要实现的目标因子任务
-            queried_knowledge: 查询到的知识库，包含相似的成功案例和失败案例
-            
-        Returns:
-            str: 生成的因子代码
-        """
-        # 获取目标任务信息
+        """Generate code for one factor task. First run: template; on error: give LLM feedback and cases."""
         target_factor_task_information = target_task.get_task_information()
 
-        # 获取相似的成功实现案例列表
         queried_similar_successful_knowledge = (
             queried_knowledge.task_to_similar_task_successful_knowledge[target_factor_task_information]
             if queried_knowledge is not None
             else []
-        )  # A list, [success task implement knowledge]
+        )
 
-        # 获取相似的错误实现案例字典（如果使用V2版本的知识管理）
         if isinstance(queried_knowledge, CoSTEERQueriedKnowledgeV2):
             queried_similar_error_knowledge = (
                 queried_knowledge.task_to_similar_error_successful_knowledge[target_factor_task_information]
@@ -258,7 +238,6 @@ class FactorParsingStrategy(MultiProcessEvolvingStrategy):
         else:
             queried_similar_error_knowledge = {}
 
-        # 获取此任务之前的失败实现列表
         queried_former_failed_knowledge = (
             queried_knowledge.task_to_former_failed_traces[target_factor_task_information][0]
             if queried_knowledge is not None
@@ -267,7 +246,6 @@ class FactorParsingStrategy(MultiProcessEvolvingStrategy):
 
         queried_former_failed_knowledge_to_render = queried_former_failed_knowledge
         
-        # 首次执行时：直接使用模板生成代码
         if len(queried_former_failed_knowledge) == 0:
             rendered_code = code_template.render(
                 expression=target_task.factor_expression, 
@@ -275,14 +253,11 @@ class FactorParsingStrategy(MultiProcessEvolvingStrategy):
             )
             return rendered_code
         
-        # 之前有报错时：提供报错信息和案例给LLM，重写表达式
         else:
-            # 获取最近一次尝试到最近一次成功执行的信息
             latest_attempt_to_latest_successful_execution = queried_knowledge.task_to_former_failed_traces[
                 target_factor_task_information
             ][1]
 
-            # 构建系统提示
             system_prompt = (
                 Environment(undefined=StrictUndefined)
                 .from_string(
@@ -297,9 +272,7 @@ class FactorParsingStrategy(MultiProcessEvolvingStrategy):
             queried_similar_successful_knowledge_to_render = queried_similar_successful_knowledge
             queried_similar_error_knowledge_to_render = queried_similar_error_knowledge
             
-            # 动态调整提示长度，防止超出token限制
-            for _ in range(10):  # 最多尝试10次减少用户提示长度
-                # 生成错误摘要（可选功能）
+            for _ in range(10):
                 if (
                     isinstance(queried_knowledge, CoSTEERQueriedKnowledgeV2)
                     and FACTOR_COSTEER_SETTINGS.v2_error_summary
@@ -314,8 +287,6 @@ class FactorParsingStrategy(MultiProcessEvolvingStrategy):
                 else:
                     error_summary_critics = None
                     
-                # 构建用户提示
-                # 检查列表是否为空，避免 IndexError
                 similar_successful_factor_description = ""
                 similar_successful_expression = ""
                 if len(queried_similar_successful_knowledge_to_render) > 0:
@@ -340,28 +311,26 @@ class FactorParsingStrategy(MultiProcessEvolvingStrategy):
                     .strip("\n")
                 )
 
-                # 检查token数量是否超限，若超限则逐步减少要渲染的知识
                 if (
                     APIBackend().build_messages_and_calculate_token(user_prompt=user_prompt, system_prompt=system_prompt)
                     < LLM_SETTINGS.chat_token_limit
                 ):
                     break
                 elif len(queried_former_failed_knowledge_to_render) > 1:
-                    # 减少历史失败案例
+                    # Reduce former failed cases
                     queried_former_failed_knowledge_to_render = queried_former_failed_knowledge_to_render[1:]
                 elif len(queried_similar_successful_knowledge_to_render) > len(
                     queried_similar_error_knowledge_to_render,
                 ):
-                    # 减少成功案例
+                    # Reduce success cases
                     queried_similar_successful_knowledge_to_render = queried_similar_successful_knowledge_to_render[:-1]
                 elif len(queried_similar_error_knowledge_to_render) > 0:
-                    # 减少错误案例
+                    # Reduce error cases
                     queried_similar_error_knowledge_to_render = queried_similar_error_knowledge_to_render[:-1]
                     
-            # 尝试最多10次从LLM获取表达式
             for _ in range(10):
                 try:
-                    # 调用API获取新的表达式
+                    # Call API for new expression
                     expr = json.loads(
                         APIBackend(
                             use_chat_cache=FACTOR_COSTEER_SETTINGS.coder_use_cache
@@ -370,7 +339,7 @@ class FactorParsingStrategy(MultiProcessEvolvingStrategy):
                         )
                     )["expr"]
                     
-                    # 使用新表达式渲染代码模板
+                    # Render code template with new expression
                     rendered_code = code_template.render(
                         expression=expr, 
                         factor_name=target_task.factor_name 
@@ -378,8 +347,7 @@ class FactorParsingStrategy(MultiProcessEvolvingStrategy):
                     return rendered_code
                     
                 except json.decoder.JSONDecodeError:
-                    # JSON解析失败时继续尝试
-                    pass
+                    pass  # JSON parse failed, retry
     
     def assign_code_list_to_evo(self, code_list, evo):
         for index in range(len(evo.sub_tasks)):
@@ -429,7 +397,7 @@ class FactorRunningStrategy(MultiProcessEvolvingStrategy):
         queried_knowledge: CoSTEERQueriedKnowledge | None = None,
         **kwargs,
     ) -> EvolvingItem:
-        # 1.找出需要evolve的task
+        # Find tasks to evolve
         to_be_finished_task_index = []
         for index, target_task in enumerate(evo.sub_tasks):
             to_be_finished_task_index.append(index)

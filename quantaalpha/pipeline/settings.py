@@ -1,19 +1,19 @@
 """
-QuantaAlpha 流程设置
+QuantaAlpha pipeline settings.
 
-定义实验流程中各组件的类路径配置。
-通过字符串类路径实现组件的动态加载和灵活替换。
+Defines class-path configuration for pipeline components.
+Components are loaded dynamically via string class paths for flexibility.
 """
 
 from quantaalpha.core.conf import ExtendedBaseSettings, ExtendedSettingsConfigDict
 
 
 # =============================================================================
-# 基础设置类
+# Base setting classes
 # =============================================================================
 
 class BasePropSetting(ExtendedBaseSettings):
-    """RD Loop 通用配置基类"""
+    """Common base for RD Loop configuration."""
 
     scen: str = ""
     knowledge_base: str = ""
@@ -27,7 +27,7 @@ class BasePropSetting(ExtendedBaseSettings):
 
 
 class BaseFacSetting(ExtendedBaseSettings):
-    """Alpha Agent Loop 通用配置基类"""
+    """Common base for Alpha Agent Loop configuration."""
 
     scen: str = ""
     knowledge_base: str = ""
@@ -42,11 +42,11 @@ class BaseFacSetting(ExtendedBaseSettings):
 
 
 # =============================================================================
-# 因子挖掘设置（主实验使用）
+# Factor mining settings (main experiment)
 # =============================================================================
 
 class AlphaAgentFactorBasePropSetting(BasePropSetting):
-    """主实验 - LLM 驱动的因子挖掘"""
+    """Main experiment: LLM-driven factor mining."""
     model_config = ExtendedSettingsConfigDict(env_prefix="QLIB_FACTOR_", protected_namespaces=())
 
     scen: str = "quantaalpha.factors.experiment.QlibAlphaAgentScenario"
@@ -59,7 +59,7 @@ class AlphaAgentFactorBasePropSetting(BasePropSetting):
 
 
 class FactorBasePropSetting(BasePropSetting):
-    """基础因子实验（传统 RD Loop 模式）"""
+    """Basic factor experiment (traditional RD Loop mode)."""
     model_config = ExtendedSettingsConfigDict(env_prefix="QLIB_FACTOR_", protected_namespaces=())
 
     scen: str = "quantaalpha.factors.experiment.QlibFactorScenario"
@@ -72,7 +72,7 @@ class FactorBasePropSetting(BasePropSetting):
 
 
 class FactorBackTestBasePropSetting(BasePropSetting):
-    """因子回测模式"""
+    """Factor backtest mode."""
     model_config = ExtendedSettingsConfigDict(env_prefix="QLIB_FACTOR_", protected_namespaces=())
 
     scen: str = "quantaalpha.factors.experiment.QlibAlphaAgentScenario"
@@ -85,7 +85,7 @@ class FactorBackTestBasePropSetting(BasePropSetting):
 
 
 class FactorFromReportPropSetting(FactorBasePropSetting):
-    """从研报提取因子模式"""
+    """Factor extraction from research reports."""
     scen: str = "quantaalpha.factors.experiment.QlibFactorFromReportScenario"
     report_result_json_file_path: str = "git_ignore_folder/report_list.json"
     max_factors_per_exp: int = 10000
@@ -93,11 +93,11 @@ class FactorFromReportPropSetting(FactorBasePropSetting):
 
 
 # =============================================================================
-# Model 实验设置（contrib，可选）
+# Model experiment settings (contrib, optional)
 # =============================================================================
 
 class ModelBasePropSetting(BasePropSetting):
-    """模型实验（扩展功能）"""
+    """Model experiment (extended feature)."""
     model_config = ExtendedSettingsConfigDict(env_prefix="QLIB_MODEL_", protected_namespaces=())
 
     scen: str = "quantaalpha.contrib.model.experiment.QlibModelScenario"
@@ -110,7 +110,7 @@ class ModelBasePropSetting(BasePropSetting):
 
 
 # =============================================================================
-# 单例实例（全局可用）
+# Singleton instances (global)
 # =============================================================================
 
 ALPHA_AGENT_FACTOR_PROP_SETTING = AlphaAgentFactorBasePropSetting()

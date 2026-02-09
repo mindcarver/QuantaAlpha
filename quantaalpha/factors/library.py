@@ -1,7 +1,6 @@
 """
-因子库管理器 - 负责将主实验产出的因子保存到统一 JSON 因子库。
-
-被 quantaalpha/pipeline/loop.py 的 feedback 步骤调用。
+Factor library manager: save experiment output to unified JSON factor library.
+Called from quantaalpha/pipeline/loop.py feedback step.
 """
 
 import json
@@ -17,7 +16,6 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-# 默认集中缓存目录（MD5 哈希命名的 .pkl 文件，优先从环境变量读取）
 DEFAULT_FACTOR_CACHE_DIR = os.environ.get(
     "FACTOR_CACHE_DIR",
     "data/results/factor_cache",
@@ -25,15 +23,11 @@ DEFAULT_FACTOR_CACHE_DIR = os.environ.get(
 
 
 class FactorLibraryManager:
-    """管理统一因子库的增删查改。"""
+    """Manage unified factor library (CRUD)."""
 
     def __init__(self, library_path: str):
         self.library_path = Path(library_path)
         self.data = self._load()
-
-    # ------------------------------------------------------------------
-    # 持久化
-    # ------------------------------------------------------------------
 
     def _load(self) -> dict:
         if self.library_path.exists():
@@ -41,7 +35,7 @@ class FactorLibraryManager:
                 with open(self.library_path, "r", encoding="utf-8") as f:
                     return json.load(f)
             except (json.JSONDecodeError, Exception) as e:
-                logger.warning(f"因子库文件损坏，将重新创建: {e}")
+                logger.warning(f"Factor library file corrupted, recreating: {e}")
         return {
             "metadata": {
                 "created_at": datetime.now().isoformat(),
@@ -59,10 +53,6 @@ class FactorLibraryManager:
         with open(self.library_path, "w", encoding="utf-8") as f:
             json.dump(self.data, f, ensure_ascii=False, indent=2, default=str)
 
-    # ------------------------------------------------------------------
-    # 核心：从 Experiment 对象中提取因子并入库
-    # ------------------------------------------------------------------
-
     def add_factors_from_experiment(
         self,
         experiment,
@@ -77,19 +67,12 @@ class FactorLibraryManager:
         trajectory_id: str = "",
         parent_trajectory_ids: Optional[list] = None,
     ):
-        """从一个 QlibFactorExperiment 中提取因子并写入因子库。"""
-
+        """Extract factors from a QlibFactorExperiment and write to library."""
         if experiment is None:
-            logger.warning("experiment is None, 跳过因子保存")
+            logger.warning("experiment is None, skip saving factors")
             return
-
-        # ---- 提取整体回测指标 ----
         backtest_results = self._extract_backtest_results(experiment)
-
-        # ---- 提取反馈信息 ----
         feedback_dict = self._extract_feedback(feedback)
-
-        # ---- 遍历每个子因子 ----
         sub_tasks = getattr(experiment, "sub_tasks", []) or []
         sub_workspaces = getattr(experiment, "sub_workspace_list", []) or []
 
@@ -99,12 +82,10 @@ class FactorLibraryManager:
             factor_desc = getattr(task, "factor_description", getattr(task, "description", ""))
             factor_form = getattr(task, "factor_formulation", "")
 
-            # 生成稳定 ID
             factor_id = hashlib.md5(
                 f"{factor_name}_{factor_expr}".encode()
             ).hexdigest()[:16]
 
-            # 获取实现代码和缓存路径
             code = ""
             cache_location = {}
             if idx < len(sub_workspaces):
@@ -117,7 +98,6 @@ class FactorLibraryManager:
                 ws_path = getattr(ws, "workspace_path", None)
                 if ws_path:
                     ws_path = Path(ws_path)
-                    # 提取 workspace 后缀和目录信息
                     workspace_suffix = ""
                     for part in ws_path.parts:
                         if part.startswith("workspace_"):
@@ -129,13 +109,11 @@ class FactorLibraryManager:
                         "workspace_path": str(ws_path.parent),
                         "factor_dir": ws_path.name,
                     }
-                    # 仅当 result.h5 确实存在时才记录路径
                     if h5_file.exists():
                         cache_location["result_h5_path"] = str(h5_file)
                     else:
                         logger.warning(
-                            f"因子 {factor_name} 的 result.h5 不存在 ({h5_file})，"
-                            f"将在回测时从表达式重新计算"
+                            f"result.h5 missing for {factor_name} ({h5_file}), will recompute from expression in backtest"
                         )
 
             factor_entry = {
@@ -163,27 +141,18 @@ class FactorLibraryManager:
 
             self.data["factors"][factor_id] = factor_entry
 
-            # ---- 自动同步 result.h5 -> MD5 缓存 ----
             if factor_expr and cache_location.get("result_h5_path"):
                 self._sync_h5_to_md5_cache(factor_expr, cache_location["result_h5_path"])
 
         self._save()
         logger.info(
-            f"已保存 {len(sub_tasks)} 个因子到 {self.library_path} "
-            f"(backtest_results 有 {len(backtest_results)} 项指标)"
+            f"Saved {len(sub_tasks)} factors to {self.library_path} (backtest_results: {len(backtest_results)} metrics)"
         )
-
-    # ------------------------------------------------------------------
-    # 缓存同步
-    # ------------------------------------------------------------------
 
     @staticmethod
     def _sync_h5_to_md5_cache(factor_expression: str, h5_path: str,
                                 cache_dir: Optional[str] = None) -> bool:
-        """将 result.h5 中的因子值同步到 MD5 缓存目录（.pkl 格式）。
-
-        Returns True on success, False otherwise.
-        """
+        """Sync factor values from result.h5 to MD5 cache dir (.pkl). Returns True on success."""
         cache_dir = Path(cache_dir or DEFAULT_FACTOR_CACHE_DIR)
         h5_file = Path(h5_path)
 
@@ -194,25 +163,22 @@ class FactorLibraryManager:
         pkl_file = cache_dir / f"{md5_key}.pkl"
 
         if pkl_file.exists():
-            # 已存在，跳过
             return True
 
         try:
             cache_dir.mkdir(parents=True, exist_ok=True)
             result = pd.read_hdf(str(h5_file))
             result.to_pickle(pkl_file)
-            logger.debug(f"已同步因子缓存 -> {pkl_file.name}")
+            logger.debug(f"Synced factor cache -> {pkl_file.name}")
             return True
         except Exception as e:
-            logger.debug(f"同步因子缓存失败 [{h5_path}]: {e}")
+            logger.debug(f"Sync factor cache failed [{h5_path}]: {e}")
             return False
 
     @staticmethod
     def check_cache_status(library_path: str,
                            cache_dir: Optional[str] = None) -> dict:
-        """检查因子库中各因子的缓存状态。
-
-        Returns:
+        """Check cache status for each factor in library. Returns:
             {
                 "total": int,
                 "h5_cached": int,
@@ -239,11 +205,11 @@ class FactorLibraryManager:
             h5_path = cloc.get("result_h5_path", "")
 
             status = "need_compute"
-            # 检查 h5 缓存
+            # Check h5 cache
             if h5_path and Path(h5_path).exists():
                 status = "h5_cached"
                 h5_cached += 1
-            # 检查 MD5 缓存
+            # Check MD5 cache
             elif expr:
                 md5_key = hashlib.md5(expr.encode()).hexdigest()
                 if (cache_dir / f"{md5_key}.pkl").exists():
@@ -270,9 +236,7 @@ class FactorLibraryManager:
     @staticmethod
     def warm_cache_from_json(library_path: str,
                              cache_dir: Optional[str] = None) -> dict:
-        """遍历因子库 JSON，将所有可用的 result.h5 同步到 MD5 缓存目录。
-
-        Returns:
+        """Walk factor library JSON and sync all available result.h5 to MD5 cache dir. Returns:
             { "total": int, "synced": int, "skipped": int, "failed": int,
               "already_cached": int, "no_source": int }
         """
@@ -294,7 +258,6 @@ class FactorLibraryManager:
             h5_path = cloc.get("result_h5_path", "")
 
             if not expr or not h5_path:
-                # 没有 H5 源文件可供同步
                 no_source += 1
                 skipped += 1
                 continue
@@ -303,7 +266,6 @@ class FactorLibraryManager:
             pkl_file = cache_dir_path / f"{md5_key}.pkl"
 
             if pkl_file.exists():
-                # MD5 缓存已存在，无需重复同步
                 already_cached += 1
                 skipped += 1
                 continue
@@ -329,22 +291,16 @@ class FactorLibraryManager:
             "no_source": no_source,
         }
 
-    # ------------------------------------------------------------------
-    # 内部工具方法
-    # ------------------------------------------------------------------
-
     @staticmethod
     def _extract_backtest_results(experiment) -> dict:
-        """从 experiment.result (pandas Series) 中提取回测指标为 dict。"""
+        """Extract backtest metrics from experiment.result (pandas Series) as dict."""
         result = getattr(experiment, "result", None)
         if result is None:
             return {}
-
-        # result 通常是 pandas Series，index 是指标名称
         if isinstance(result, pd.Series):
             out = {}
             for key, val in result.items():
-                # 把 NaN / Inf 转为 None 以便 JSON 序列化
+                # NaN/Inf -> None for JSON
                 if isinstance(val, (float, np.floating)):
                     if np.isnan(val) or np.isinf(val):
                         out[str(key)] = None
@@ -370,7 +326,7 @@ class FactorLibraryManager:
 
     @staticmethod
     def _extract_feedback(feedback) -> dict:
-        """将 feedback 对象转换为可序列化的 dict。"""
+        """Convert feedback object to serializable dict."""
         if feedback is None:
             return {}
         if isinstance(feedback, dict):

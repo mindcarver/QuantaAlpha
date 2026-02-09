@@ -1,8 +1,7 @@
 """
-QuantaAlpha LLM 配置
+QuantaAlpha LLM configuration.
 
-所有 LLM 相关的配置参数。通过 Pydantic-settings 自动从环境变量读取。
-环境变量名称 = 字段名称的大写形式（如 chat_model → CHAT_MODEL）
+All LLM-related settings; loaded from env via Pydantic-settings (e.g. CHAT_MODEL).
 """
 
 from __future__ import annotations
@@ -13,14 +12,9 @@ from quantaalpha.core.conf import ExtendedBaseSettings
 
 
 class LLMSettings(ExtendedBaseSettings):
-    # 日志
     log_llm_chat_content: bool = True
-
-    # 重试配置
     max_retry: int = 30
     retry_wait_seconds: int = 15
-    
-    # 缓存配置
     dump_chat_cache: bool = False
     use_chat_cache: bool = False
     dump_embedding_cache: bool = False
@@ -31,7 +25,6 @@ class LLMSettings(ExtendedBaseSettings):
     use_auto_chat_cache_seed_gen: bool = False
     init_chat_cache_seed: int = 42
 
-    # Chat 配置
     openai_api_key: str = ""
     openai_base_url: str = ""
     chat_openai_api_key: str = ""
@@ -47,7 +40,7 @@ class LLMSettings(ExtendedBaseSettings):
     default_system_prompt: str = "You are an AI assistant who helps to answer user's questions."
     factor_mining_timeout: int = 999999
 
-    # Embedding 配置
+    # Embedding
     embedding_openai_api_key: str = ""
     embedding_model: str = ""
     embedding_max_str_num: int = 3
@@ -55,7 +48,7 @@ class LLMSettings(ExtendedBaseSettings):
     embedding_api_key: str = ""
     embedding_base_url: str = ""
 
-    # Azure 配置（可选）
+    # Azure (optional)
     use_azure: bool = False
     chat_use_azure_token_provider: bool = False
     embedding_use_azure_token_provider: bool = False
@@ -65,7 +58,7 @@ class LLMSettings(ExtendedBaseSettings):
     embedding_azure_api_base: str = ""
     embedding_azure_api_version: str = ""
 
-    # 离线/端点模式（通常不使用）
+    # Offline/endpoint (rarely used)
     use_llama2: bool = False
     use_gcr_endpoint: bool = False
 

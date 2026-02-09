@@ -97,12 +97,12 @@ class QlibFactorRunner(CachedRunner[QlibFactorExperiment]):
                 new_factors = self.process_factor_data(exp)
             except FactorEmptyError as e:
                 logger.error(f"Failed to process new factors: {e}")
-                # 尝试手动执行因子
+                # Try manual factor execution
                 logger.info("Attempting to manually execute factors...")
                 for ws in exp.sub_workspace_list:
                     if not (ws.workspace_path / "result.h5").exists():
                         try:
-                            # 确保符号链接存在
+                            # Ensure symlink exists
                             data_source = Path(FACTOR_COSTEER_SETTINGS.data_folder).absolute()
                             if not data_source.is_absolute():
                                 data_source = Path(__file__).parent.parent.parent.parent.parent / FACTOR_COSTEER_SETTINGS.data_folder
@@ -110,7 +110,7 @@ class QlibFactorRunner(CachedRunner[QlibFactorExperiment]):
                             if not daily_pv_link.exists() and (data_source / "daily_pv.h5").exists():
                                 os.symlink(str(data_source / "daily_pv.h5"), str(daily_pv_link))
                             
-                            # 执行因子
+                            # Execute factor
                             import subprocess
                             env = os.environ.copy()
                             project_root = Path(__file__).parent.parent.parent.parent.parent
@@ -125,7 +125,7 @@ class QlibFactorRunner(CachedRunner[QlibFactorExperiment]):
                         except Exception as exec_e:
                             logger.warning(f"Failed to manually execute factor {ws.workspace_path}: {exec_e}")
                 
-                # 重试处理因子数据
+                # Retry processing factor data
                 try:
                     new_factors = self.process_factor_data(exp)
                 except FactorEmptyError:
@@ -161,23 +161,20 @@ class QlibFactorRunner(CachedRunner[QlibFactorExperiment]):
             logger.info(f"Saved combined factors to {parquet_path}")
 
 
-        # 执行回测，支持本地或Docker环境
-        # 注意：配置文件名称需要与 factor_template 目录中的实际文件名匹配
-        # rdagent factor_template 中的实际文件：conf_baseline.yaml / conf_combined_factors.yaml
+        # Run backtest (local or Docker). Config name must match factor_template files (e.g. conf_baseline.yaml).
         config_name = "conf_baseline.yaml" if len(exp.based_experiments) == 0 else "conf_combined_factors.yaml"
         logger.info(f"Execute factor backtest (Use {'Local' if use_local else 'Docker container'}): {config_name}")
         
-        # 确保工作空间已准备好，配置文件已写入
-        # 这很重要，因为 execute() 方法不会自动调用 before_execute()
+        # Ensure workspace and config are ready (execute() does not call before_execute()).
         exp.experiment_workspace.before_execute()
         
-        # execute() 返回 (result_df, execute_qlib_log) 或 (None, execute_qlib_log)
+        # execute() returns (result_df, execute_qlib_log) or (None, execute_qlib_log)
         result_tuple = exp.experiment_workspace.execute(
             qlib_config_name=config_name,
-            run_env={}  # 使用 run_env 而不是 use_local
+            run_env={}
         )
         
-        # 解包 tuple，只取第一个元素（DataFrame）
+        # Unpack tuple; take first element (DataFrame)
         result = result_tuple[0] if isinstance(result_tuple, tuple) else result_tuple
         
         if result is not None:
@@ -185,7 +182,7 @@ class QlibFactorRunner(CachedRunner[QlibFactorExperiment]):
         else:
             logger.warning("Backtesting result is None. Check the execution logs above for errors.")
             if isinstance(result_tuple, tuple) and len(result_tuple) > 1:
-                logger.info(f"Execution log: {result_tuple[1][:500]}...")  # 只显示前500字符
+                logger.info(f"Execution log: {result_tuple[1][:500]}...")
         
         exp.result = result
 

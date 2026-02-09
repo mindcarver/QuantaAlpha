@@ -60,7 +60,7 @@ class BenchmarkAnalyzer:
 
                                                     success rate
             Category Difficulty Factor
-            量价       Hard       High_Beta_Factor           0.2
+            PriceVol   Hard       High_Beta_Factor           0.2
 
         """
         new_idx = []

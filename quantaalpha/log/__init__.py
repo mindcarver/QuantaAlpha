@@ -1,10 +1,8 @@
 """
-AlphaAgent 日志模块 - 兼容层
+AlphaAgent logging module - compatibility layer.
 
-将 alphaagent.log 映射到 rdagent.log 的对应组件，
-使得项目中所有 alphaagent.log 的导入都能正常工作。
-
-额外提供 log_trace_path / set_trace_path 等 AlphaAgent 专用接口。
+Maps alphaagent.log to rdagent.log so all alphaagent.log imports work.
+Provides AlphaAgent-specific APIs: log_trace_path, set_trace_path.
 """
 
 from pathlib import Path
@@ -14,25 +12,24 @@ from rdagent.log.utils import LogColors
 
 class _AlphaAgentLoggerWrapper:
     """
-    包装 rdagent_logger，添加 AlphaAgent 专用的 log_trace_path 和 set_trace_path 接口。
-    其余属性和方法全部代理到 rdagent_logger。
+    Wraps rdagent_logger and adds log_trace_path / set_trace_path. Other attributes/methods delegate to rdagent_logger.
     """
 
     def __init__(self, inner):
         object.__setattr__(self, "_inner", inner)
 
-    # ---------- AlphaAgent 扩展 ----------
+    # ---------- AlphaAgent extension ----------
     @property
     def log_trace_path(self) -> Path:
-        """返回当前日志跟踪路径"""
+        """Return current log trace path."""
         return self._inner.storage.path
 
     def set_trace_path(self, path) -> None:
-        """设置新的日志跟踪路径"""
+        """Set new log trace path."""
         from rdagent.log.storage import FileStorage
         self._inner.storage = FileStorage(Path(path))
 
-    # ---------- 代理到 rdagent_logger ----------
+    # ---------- Delegate to rdagent_logger ----------
     def __getattr__(self, name):
         return getattr(self._inner, name)
 

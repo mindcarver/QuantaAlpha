@@ -417,7 +417,7 @@ Please propose your fusion hypothesis based on the above crossover guidance.
         
         elif strategy == "weighted_inverse":
             # Inverse performance-weighted sampling (lower performance = higher weight)
-            # 参考 EvoControl 的 _weighted_select_labels 策略
+            # Ref: EvoControl _weighted_select_labels strategy
             return self._weighted_sample(sorted_candidates, num_needed, inverse=True)
         
         elif strategy == "top_percent_plus_random":
@@ -475,7 +475,7 @@ Please propose your fusion hypothesis based on the above crossover guidance.
         
         if inverse:
             # Lower performance = higher weight (for exploration)
-            # 参考 EvoControl: performance 越低权重越高
+            # Ref: EvoControl - lower performance => higher weight
             weights = [1 - n + 0.1 for n in normalized]  # +0.1 to avoid zero weight
         else:
             # Higher performance = higher weight

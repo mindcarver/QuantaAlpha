@@ -109,7 +109,7 @@ class ConditionalNode(Node):
 
 @dataclass
 class UnaryOpNode(Node):
-    """一元运算符节点，支持 -x 这样的表达式"""
+    """Unary op node, e.g. -x."""
     op: str
     operand: Node
     
@@ -192,7 +192,7 @@ def create_conditional_node(tokens):
     )
 
 def create_unary_op_node(tokens):
-    """创建一元运算符节点，处理 -x 这样的表达式"""
+    """Create unary op node for expressions like -x."""
     tokens = tokens[0]
     def unwrap(arg):
         if isinstance(arg, (list, ParseResults)):
@@ -201,7 +201,6 @@ def create_unary_op_node(tokens):
             return [unwrap(x) for x in arg]
         return arg
     
-    # tokens 格式: ['-', operand]
     op = tokens[0]
     operand = unwrap(tokens[1])
     return UnaryOpNode(op, operand)
@@ -227,7 +226,7 @@ unary_minus = Literal("-")
 expr <<= infixNotation(
     operand,
     [
-        (unary_minus, 1, opAssoc.RIGHT, create_unary_op_node),  # 一元负号，最高优先级
+        (unary_minus, 1, opAssoc.RIGHT, create_unary_op_node),
         (mul_div, 2, opAssoc.LEFT, create_binary_op_node),
         (add_sub, 2, opAssoc.LEFT, create_binary_op_node),
         (comparison, 2, opAssoc.LEFT, create_binary_op_node),
@@ -251,7 +250,7 @@ def parse_expression(text: str) -> Node:
     
     
 def are_nodes_equal(node1: Node, node2: Node) -> bool:
-    """比较两个节点是否相等"""
+    """Compare two nodes for equality."""
     if type(node1) != type(node2):
         return False
         
@@ -264,23 +263,23 @@ def are_nodes_equal(node1: Node, node2: Node) -> bool:
     elif isinstance(node1, BinaryOpNode):
         return node1.op == node2.op
     elif isinstance(node1, ConditionalNode):
-        return True  # 条件节点本身相等，子节点会在递归中比较
+        return True
     return False
 
 @dataclass
 class SubtreeMatch:
-    root1: Node  # 第一个树中的子树根节点
-    root2: Node  # 第二个树中的子树根节点
-    size: int    # 子树大小（节点数）
+    root1: Node
+    root2: Node
+    size: int
     
     def __str__(self):
         return f"Match(size={self.size}):\n  Tree1: {str(root1)}\n  Tree2: {str(root2)}"
 
 def find_largest_common_subtree(root1: Node, root2: Node) -> Opt[SubtreeMatch]:
-    """查找两棵树之间的最大公共子树"""
+    """Find largest common subtree between two trees."""
     
     def get_subtree_size(node: Node) -> int:
-        """计算以给定节点为根的子树大小"""
+        """Size of subtree rooted at node."""
         if isinstance(node, (NumberNode, VarNode)):
             return 1
         elif isinstance(node, FunctionNode):
@@ -294,7 +293,7 @@ def find_largest_common_subtree(root1: Node, root2: Node) -> Opt[SubtreeMatch]:
         return 0
 
     def get_all_subtrees(root: Node) -> List[Node]:
-        """获取树中的所有子树根节点"""
+        """All subtree roots in tree."""
         result = [root]
         if isinstance(root, FunctionNode):
             for arg in root.args:
@@ -309,11 +308,11 @@ def find_largest_common_subtree(root1: Node, root2: Node) -> Opt[SubtreeMatch]:
         return result
 
     def is_commutative_op(op: str) -> bool:
-        """判断是否为可交换操作符"""
+        """Whether op is commutative."""
         return op in {'+', '*', '==', '!=', '&', '&&', '|', '||'}
 
     def are_subtrees_equal(node1: Node, node2: Node) -> bool:
-        """递归比较两个子树是否完全相等，考虑可交换操作"""
+        """Recursively compare two subtrees; handle commutative ops."""
         if not are_nodes_equal(node1, node2):
             return False
             
@@ -323,7 +322,7 @@ def find_largest_common_subtree(root1: Node, root2: Node) -> Opt[SubtreeMatch]:
             return all(are_subtrees_equal(arg1, arg2) 
                       for arg1, arg2 in zip(node1.args, node2.args))
         elif isinstance(node1, BinaryOpNode):
-            # 对于可交换操作符，尝试两种顺序
+            # Try both orders for commutative ops
             if is_commutative_op(node1.op):
                 return (are_subtrees_equal(node1.left, node2.left) and 
                         are_subtrees_equal(node1.right, node2.right)) or \
@@ -338,11 +337,9 @@ def find_largest_common_subtree(root1: Node, root2: Node) -> Opt[SubtreeMatch]:
                    are_subtrees_equal(node1.false_expr, node2.false_expr)
         return False
 
-    # 获取所有可能的子树
     subtrees1 = get_all_subtrees(root1)
     subtrees2 = get_all_subtrees(root2)
     
-    # 找到最大的公共子树
     max_match = None
     max_size = 0
     

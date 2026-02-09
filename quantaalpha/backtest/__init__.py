@@ -1,10 +1,5 @@
 """
-Backtest V2 - 全功能回测工具
-
-支持:
-- Qlib 官方因子库 (alpha158, alpha158(20), alpha360)
-- 自定义因子库 (JSON格式)
-- LLM 驱动的因子表达式计算
+Backtest V2: Qlib official factor sets (alpha158/alpha360), custom factor JSON, LLM-driven factor computation.
 """
 
 from .factor_loader import FactorLoader

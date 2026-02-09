@@ -35,30 +35,18 @@ def md5_hash(input_string: str) -> str:
 
 def robust_json_parse(text: str, max_retries: int = 3) -> dict:
     """
-    健壮的 JSON 解析函数，可以处理以下常见问题：
-    1. Extra data 错误（JSON 后面有额外内容）
-    2. LaTeX 转义字符问题
-    3. JSON 被 markdown 代码块包裹
-    
-    Args:
-        text: 要解析的文本
-        max_retries: 最大重试次数（用于不同的解析策略）
-        
-    Returns:
-        解析后的 dict
-        
-    Raises:
-        json.JSONDecodeError: 如果所有解析策略都失败
+    Robust JSON parser: handles extra data, LaTeX escapes, markdown-wrapped JSON.
+    Raises json.JSONDecodeError if all strategies fail.
     """
     original_text = text
-    
-    # 策略 1: 直接解析
+
+    # Strategy 1: direct parse
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
     
-    # 策略 2: 提取 JSON 代码块
+    # Strategy 2: extract JSON code block
     json_block_pattern = r'```(?:json)?\s*\n?([\s\S]*?)\n?```'
     matches = re.findall(json_block_pattern, text)
     if matches:
@@ -68,8 +56,7 @@ def robust_json_parse(text: str, max_retries: int = 3) -> dict:
             except json.JSONDecodeError:
                 continue
     
-    # 策略 3: 查找第一个完整的 JSON 对象（处理 Extra data 问题）
-    # 找到第一个 { 和对应的 }
+    # Strategy 3: find first complete JSON object (extra data)
     brace_count = 0
     start_idx = -1
     end_idx = -1
@@ -104,7 +91,7 @@ def robust_json_parse(text: str, max_retries: int = 3) -> dict:
         try:
             return json.loads(json_str)
         except json.JSONDecodeError:
-            # 策略 4: 修复 LaTeX 转义字符
+            # Strategy 4: fix LaTeX escapes
             fixed_str = json_str
             latex_commands = ['text', 'frac', 'left', 'right', 'times', 'cdot', 'sqrt', 
                               'sum', 'prod', 'int', 'alpha', 'beta', 'gamma', 'delta']
@@ -117,8 +104,7 @@ def robust_json_parse(text: str, max_retries: int = 3) -> dict:
             except json.JSONDecodeError:
                 pass
     
-    # 策略 5: 尝试更宽松的 JSON 提取
-    # 找到所有可能的 JSON 对象
+    # Strategy 5: looser JSON extraction
     potential_jsons = re.findall(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', text)
     for pj in potential_jsons:
         try:
@@ -128,11 +114,10 @@ def robust_json_parse(text: str, max_retries: int = 3) -> dict:
         except json.JSONDecodeError:
             continue
     
-    # 所有策略都失败，抛出原始错误
     raise json.JSONDecodeError(
-        f"无法解析 JSON，原始文本长度: {len(original_text)}", 
-        original_text, 
-        0
+        f"Could not parse JSON; original text length: {len(original_text)}",
+        original_text,
+        0,
     )
 
 
@@ -679,13 +664,13 @@ class APIBackend:
                     kwargs["input_content_list"] = [
                         content[: len(content) // 2] for content in kwargs.get("input_content_list", [])
                     ]
-                # 即使是 BadRequestError，也等待一段时间再重试，避免频繁请求
-                if i < max_retry - 1:  # 最后一次重试前不需要等待
+                # Wait before retry to avoid rate limit
+                if i < max_retry - 1:
                     time.sleep(self.retry_wait_seconds)
             except Exception as e:  # noqa: BLE001
                 logger.warning(e)
                 logger.warning(f"Retrying {i+1}th time...")
-                if i < max_retry - 1:  # 最后一次重试前不需要等待
+                if i < max_retry - 1:
                     time.sleep(self.retry_wait_seconds)
         error_message = f"Failed to create chat completion after {max_retry} retries."
         raise RuntimeError(error_message)
@@ -706,12 +691,12 @@ class APIBackend:
             filtered_input_content_list = input_content_list
 
         if len(filtered_input_content_list) > 0:
-            # 根据模型名称自动调整批次大小，DashScope text-embedding-v4性能较差
+            # Adjust batch size by model (DashScope text-embedding-v4 is slower)
             batch_size = LLM_SETTINGS.embedding_max_str_num
             if self.embedding_model and ("qwen" in self.embedding_model.lower() or "text-embedding-v4" in self.embedding_model.lower()):
-                # DashScope text-embedding-v4性能较差，10个线程会打挂，使用更小的批次
+                # DashScope embedding: use smaller batch to avoid overload
                 batch_size = min(batch_size, 3)
-                # DashScope embedding 模型使用较小批次（静默处理，不打日志）
+                # DashScope embedding: smaller batch (silent)
             
             batch_wait_seconds = LLM_SETTINGS.embedding_batch_wait_seconds
             batches = [
@@ -736,26 +721,17 @@ class APIBackend:
                 if self.dump_embedding_cache:
                     self.cache.embedding_set(content_to_embedding_dict)
                 
-                # 批次之间等待，避免API过载（最后一个批次不需要等待）
+                # Wait between batches to avoid API overload
                 if batch_idx < len(batches) - 1 and batch_wait_seconds > 0:
                     time.sleep(batch_wait_seconds)
         return [content_to_embedding_dict[content] for content in input_content_list]
 
     def _build_log_messages(self, messages: list[dict], max_prompt_length: int = 100) -> str:
-        """
-        构建日志消息。
-        
-        Args:
-            messages: 消息列表
-            max_prompt_length: prompt（system/user）内容的最大显示长度，默认100字符。
-                              所有角色的内容都会被截断以保持日志简洁。
-        """
+        """Build log string from messages (content truncated to max_prompt_length)."""
         log_messages = ""
         for m in messages:
             role = m['role']
             content = m['content']
-            
-            # 所有角色的内容都截断显示
             if len(content) > max_prompt_length:
                 display_content = content[:max_prompt_length] + f"... [{len(content)} chars]"
             else:
@@ -919,37 +895,34 @@ class APIBackend:
                         tag="llm_messages",
                     )
             if json_mode or reasoning_flag:
-                # 提取JSON部分
+                # Extract JSON part
                 json_start = resp.find('{')
                 json_end = resp.rfind('}') + 1
                 resp = resp[json_start:json_end]
-                # 尝试解析 JSON，如果失败则尝试修复
+                # Try parse JSON; on failure try to fix
                 try:
                     json.loads(resp)
                 except json.JSONDecodeError as e:
                     import re
                     error_msg = str(e).lower()
-                    # 尝试修复常见的 JSON 格式问题
+                    # Fix common JSON format issues
                     fixed_resp = resp
                     
-                    # 修复 LaTeX 中的反斜杠问题：
-                    # \text, \frac 等 LaTeX 命令中的 \t, \f 会被误解释为转义字符
-                    # 将 \text 替换为 \\text，\frac 替换为 \\frac 等
+                    # Fix LaTeX backslash: \text, \frac etc. misinterpreted as escapes
                     latex_commands = ['text', 'frac', 'left', 'right', 'times', 'cdot', 'sqrt', 'sum', 'prod', 'int']
                     for cmd in latex_commands:
-                        # 只替换单反斜杠的情况（不是已经是双反斜杠的）
+                        # Replace single backslash only
                         fixed_resp = re.sub(r'(?<!\\)\\(' + cmd + r')', r'\\\\\1', fixed_resp)
                     
-                    # 修复其他无效转义：\_ \{ \} \[ \] 等
+                    # Fix other invalid escapes: \_ \{ \} etc.
                     fixed_resp = re.sub(r'(?<!\\)\\([_\{\}\[\]])', r'\\\\\1', fixed_resp)
                     
                     try:
                         json.loads(fixed_resp)
                         resp = fixed_resp
-                        logger.info(f"已修复 JSON 格式问题")
+                        logger.info("Fixed JSON format issues")
                     except json.JSONDecodeError as e2:
-                        # 如果仍然失败，记录警告但不抛出异常，让后续代码尝试处理
-                        logger.warning(f"JSON 修复失败: {e2}，继续使用原始响应")
+                        logger.warning(f"JSON fix failed: {e2}, using raw response")
         if self.dump_chat_cache:
             self.cache.chat_set(input_content_json, resp)
         return resp, finish_reason

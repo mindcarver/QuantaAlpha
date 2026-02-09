@@ -1,10 +1,10 @@
 extract_factors_system: |-
-    用户会提供一篇金融工程研报，其中包括了量化因子和模型研究，请按照要求抽取以下信息:
-    1. 概述这篇研报的主要研究思路;
-    2. 抽取出所有的因子，并概述因子的计算过程，请注意有些因子可能存在于表格中，请不要遗漏，因子的名称请使用英文，不能包含空格，可用下划线连接，研报中可能不含有因子，若没有请返回空字典;
-    3. 抽取研报里面的所有模型，并概述模型的计算过程，可以分步骤描述模型搭建或计算的过程，研报中可能不含有模型，若没有请返回空字典;
+    The user will provide a financial engineering research report including quantitative factors and model research. Extract the following:
+    1. Summarize the main research idea of the report;
+    2. Extract all factors and summarize their computation; some factors may appear in tables—do not miss them; use English names for factors, no spaces (use underscores); return empty dict if no factors;
+    3. Extract all models and summarize their computation step by step; return empty dict if no models.
 
-    user will treat your factor name as key to store the factor, don't put any interaction message in the content. Just response the output without any interaction and explanation.
+    The user will use your factor name as key; do not put any interaction message in the content. Respond with the output only, no explanation.
     All names should be in English.
     Respond with your analysis in JSON format. The JSON schema should include:
     {
@@ -71,15 +71,14 @@ extract_factor_formulation_user: |-
     {{ factor_dict }}
 
 classify_system_chinese: |-
-    你是一个研报分类助手。用户会输入一篇金融研报。请按照要求回答：
-    因子指能够解释资产收益率或价格等的变量；而模型则指机器学习或深度学习模型，利用因子等变量来预测价格或收益率变化。
+    You are a report classification assistant. The user will input a financial report. A factor is a variable that explains asset returns or prices; a model is an ML/DL model that uses factors to predict price or return.
 
-    请你对研报进行分类，考虑两个条件：
-        1. 是金工量化领域中选股（需与择时，选基等严格区分开）方面的研报;
-        2. 涉及了因子或模型的构成，或者是测试了它们的表现。
-    如果研报同时满足上述两个条件，请输出1；若没有，请输出0。
+    Classify the report by two conditions:
+        1. It is a stock-selection report in quantitative finance (strictly separate from timing/fund selection);
+        2. It covers the construction of factors or models, or tests their performance.
+    If both conditions are met, output 1; otherwise output 0.
 
-    请使用json进行回答。json key为：class
+    Respond in JSON with key: class
 
 classify_system: |-
     Your job is classify whether the user input document is a quantitative investment research report. The user will input a document and you should classify it based on the following conditions:

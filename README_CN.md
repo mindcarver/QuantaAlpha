@@ -323,7 +323,7 @@ bash start.sh
 
 ## ⭐ Star 历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=QuantaAlpha/QuantaAlpha&type=Date)](https://www.star-history.com/#QuantaAlpha/QuantaAlpha&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=QuantaAlpha/QuantaAlpha&type=Date&v=20260209)](https://www.star-history.com/#QuantaAlpha/QuantaAlpha&Date)
 
 ---
 

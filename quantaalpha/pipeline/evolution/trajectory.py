@@ -102,8 +102,8 @@ class StrategyTrajectory:
         
         # Hypothesis
         if self.hypothesis:
-            parts.append(f"假设: {self.hypothesis[:500]}...")
-        
+            parts.append(f"Hypothesis: {self.hypothesis[:500]}...")
+
         # Factors
         if self.factors:
             factor_strs = []
@@ -111,20 +111,20 @@ class StrategyTrajectory:
                 name = f.get("name", "unknown")
                 expr = f.get("expression", "")[:100]
                 factor_strs.append(f"  - {name}: {expr}")
-            parts.append("因子:\n" + "\n".join(factor_strs))
-        
+            parts.append("Factors:\n" + "\n".join(factor_strs))
+
         # Metrics
         if self.backtest_metrics:
             metrics_str = ", ".join(
-                f"{k}={v:.4f}" for k, v in self.backtest_metrics.items() 
+                f"{k}={v:.4f}" for k, v in self.backtest_metrics.items()
                 if v is not None
             )
             if metrics_str:
-                parts.append(f"指标: {metrics_str}")
-        
+                parts.append(f"Metrics: {metrics_str}")
+
         # Feedback
         if self.feedback:
-            parts.append(f"反馈: {self.feedback[:300]}...")
+            parts.append(f"Feedback: {self.feedback[:300]}...")
         
         return "\n\n".join(parts)
     

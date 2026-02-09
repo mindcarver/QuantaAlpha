@@ -119,14 +119,14 @@ class LocalEnv(Env[LocalConf]):
 
 
 class QlibLocalEnv(LocalEnv):
-    """本地运行Qlib环境，替代Docker容器"""
+    """Local Qlib execution environment (replaces Docker)."""
     
     def __init__(self, timeout: int = 3600):
         """
-        初始化本地Qlib环境
+        Initialize local Qlib environment.
         
         Args:
-            timeout: 命令执行超时时间（秒），默认3600秒（1小时）
+            timeout: Command execution timeout in seconds (default 3600).
         """
         conf = LocalConf(
             py_bin="python",
@@ -136,14 +136,14 @@ class QlibLocalEnv(LocalEnv):
         self.timeout = timeout
     
     def prepare(self):
-        """确保本地环境已准备就绪"""
+        """Ensure local environment is ready."""
         logger.info("Use local environment to run Qlib backtest")
-        # 从环境变量读取 Qlib 数据路径
+        # Read Qlib data path from env
         qlib_data_dir = os.environ.get("QLIB_DATA_DIR",
                          os.environ.get("QLIB_PROVIDER_URI", "~/.qlib/qlib_data/cn_data"))
         qlib_data_path = Path(qlib_data_dir).expanduser()
         if not qlib_data_path.exists():
-            logger.warning(f"Qlib数据目录不存在: {qlib_data_path}，请确保已下载数据")
+            logger.warning(f"Qlib data directory does not exist: {qlib_data_path}; please ensure data is downloaded")
         
     def run(
         self, 
@@ -154,28 +154,28 @@ class QlibLocalEnv(LocalEnv):
         **kwargs
     ) -> str:
         """
-        在本地运行命令
-        
+        Run command locally.
+
         Args:
-            entry: 要执行的命令
-            local_path: 工作目录
-            env: 环境变量
-            timeout: 超时时间（秒），如果为None则使用实例的timeout属性
-            **kwargs: 其他参数
-            
+            entry: Command to run
+            local_path: Working directory
+            env: Environment variables
+            timeout: Timeout in seconds; if None, use instance timeout
+            **kwargs: Other arguments
+
         Returns:
-            命令的标准输出
+            Command stdout
         """
         if env is None:
             env = {}
         
-        # 使用传入的timeout或实例的timeout
+        # Use provided timeout or instance timeout
         exec_timeout = timeout if timeout is not None else self.timeout
             
         if entry is None:
             entry = self.conf.default_entry
             
-        # 记录运行信息
+        # Log run info
         table = Table(title="Local Run Info", show_header=False)
         table.add_column("Key", style="bold cyan")
         table.add_column("Value", style="bold magenta")
@@ -185,18 +185,18 @@ class QlibLocalEnv(LocalEnv):
         table.add_row("Environment Variables", "\n".join(f"{k}:{v}" for k, v in env.items()))
         print(table)
         
-        # 分割命令
+        # Split command
         command = entry.split()
         
-        # 设置工作目录
+        # Set working directory
         cwd = None
         if local_path:
             cwd = Path(local_path).resolve()
             
-        print(Rule("[bold green]开始本地执行[/bold green]", style="dark_orange"))
+        print(Rule("[bold green]Starting local execution[/bold green]", style="dark_orange"))
         
         try:
-            # 运行命令，添加超时
+            # Run command with timeout
             result = subprocess.run(
                 command, 
                 cwd=cwd, 
@@ -206,7 +206,7 @@ class QlibLocalEnv(LocalEnv):
                 timeout=exec_timeout
             )
             
-            # 输出结果
+            # Output result
             output = result.stdout
             print(output)
             
@@ -507,48 +507,48 @@ class DockerEnv(Env[DockerConf]):
 
 
 class QTDockerEnv(DockerEnv):
-    """Qlib运行环境，可选择Docker或本地环境"""
+    """Qlib run environment (Docker or local)."""
 
     def __init__(self, conf: DockerConf = QlibDockerConf(), is_local=False, timeout: Optional[int] = None):
         """
-        初始化Qlib运行环境
-        
+        Initialize Qlib run environment.
+
         Args:
-            conf: Docker配置（仅用于Docker模式）
-            is_local: 是否使用本地环境（True）还是Docker（False）
-            timeout: 超时时间（秒），如果为None则使用默认值（本地：3600秒，Docker：使用conf.running_timeout_period）
+            conf: Docker config (Docker mode only)
+            is_local: True=local, False=Docker
+            timeout: Timeout in seconds; None=default (local 3600, Docker from conf.running_timeout_period)
         """
         self.is_local = is_local
         if is_local:
-            # 本地环境：使用传入的timeout或默认3600秒
+            # Local: use provided timeout or default 3600
             local_timeout = timeout if timeout is not None else 3600
             self.env = QlibLocalEnv(timeout=local_timeout)
         else:
-            # Docker环境：如果传入了timeout，更新conf
+            # Docker: if timeout provided, update conf
             if timeout is not None:
                 conf.running_timeout_period = timeout
             self.env = DockerEnv(conf)
 
     def prepare(self):
-        """准备环境"""
+        """Prepare environment."""
         self.env.prepare()
 
     def run(self, local_path=None, entry=None, env=None, running_extra_volume=None, timeout: Optional[int] = None):
         """
-        运行命令
-        
+        Run command.
+
         Args:
-            local_path: 工作目录
-            entry: 要执行的命令
-            env: 环境变量
-            running_extra_volume: Docker额外卷（仅用于Docker模式）
-            timeout: 超时时间（秒），如果为None则使用初始化时的timeout
+            local_path: Working directory
+            entry: Command to run
+            env: Environment variables
+            running_extra_volume: Docker extra volume (Docker only)
+            timeout: Timeout in seconds; None=use init timeout
         """
         if self.is_local:
-            # 本地环境：传递timeout参数
+            # Local: pass timeout
             return self.env.run(entry=entry, local_path=local_path, env=env, timeout=timeout)
         else:
-            # Docker环境：timeout已经在初始化时设置到conf中
+            # Docker: timeout already set in conf at init
             return self.env.run(entry=entry, local_path=local_path, env=env, 
                               running_extra_volume=running_extra_volume)
 

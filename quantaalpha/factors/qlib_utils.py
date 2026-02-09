@@ -19,23 +19,23 @@ def generate_data_folder_from_qlib(use_local: bool = True):
     qtde = QTDockerEnv(is_local=use_local)
     qtde.prepare()
     
-    # 使用当前 Python 解释器，确保子进程能找到已安装的包（如 qlib）
+    # Use current Python so subprocess finds installed packages (e.g. qlib)
     python_exe = sys.executable
-    logger.info(f"在{'本地' if use_local else 'Docker容器'}中生成因子数据")
+    logger.info(f"Generating factor data in {'local' if use_local else 'Docker'}")
     execute_log = qtde.run(
         local_path=str(template_path),
         entry=f'{python_exe} generate.py',
     )
 
-    # 检查文件是否生成
+    # Check that file was generated
     daily_pv_all = Path(__file__).parent / "data_template" / "daily_pv_all.h5"
     daily_pv_debug = Path(__file__).parent / "data_template" / "daily_pv_debug.h5"
     
     assert daily_pv_all.exists(), "daily_pv_all.h5 is not generated."
     assert daily_pv_debug.exists(), "daily_pv_debug.h5 is not generated."
 
-    # 创建数据目录并复制文件
-    logger.info(f"复制生成的数据文件到工作目录")
+    # Create data dir and copy files
+    logger.info("Copying generated data files to workspace")
     Path(FACTOR_COSTEER_SETTINGS.data_folder).mkdir(parents=True, exist_ok=True)
     shutil.copy(
         daily_pv_all,
@@ -56,7 +56,7 @@ def generate_data_folder_from_qlib(use_local: bool = True):
         Path(FACTOR_COSTEER_SETTINGS.data_folder_debug) / "README.md",
     )
     
-    logger.info(f"数据准备完成")
+    logger.info("Data preparation done")
     
 
 

@@ -1,13 +1,9 @@
 # =============================================================================
-# QuantaAlpha 小回测配置 - 组合因子版本
+# QuantaAlpha small backtest config - combined factors
 #
-# 基于老版本 conf_cn_combined_kdd_ver.yaml 配置，适配当前版本：
-#   - 使用 parquet 格式的因子数据（当前版本保存格式）
-#   - 去掉 ProcessInf（pandas 1.5.x 不支持 resample("ME")）
-#   - 保留完整的特征预处理流程（Fillna + DropnaLabel + CSRankNorm）
-#   - learning_rate 0.05 + early_stopping_round 50（老版本稳健配置）
-#   - 开盘价成交（更贴近实际交易）
-#   - 真正的样本外测试集 [2022-2025]
+# Adapted from legacy conf: parquet factor data, no ProcessInf (pandas 1.5.x),
+# full preprocessing (Fillna + DropnaLabel + CSRankNorm), learning_rate 0.05,
+# early_stopping_round 50, open price execution, out-of-sample test [2022-2025].
 # =============================================================================
 
 qlib_init:

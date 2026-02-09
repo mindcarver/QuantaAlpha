@@ -67,7 +67,7 @@ class RDAgentSettings(ExtendedBaseSettings):
     max_output_duplicate_factor_group: int = 20
     max_kmeans_group_number: int = 40
 
-    # workspace conf - 从环境变量 WORKSPACE_PATH 读取，默认使用项目内 data/results
+    # workspace conf: from env WORKSPACE_PATH, default project data/results
     workspace_path: Path = Path(
         os.environ.get("WORKSPACE_PATH",
                        str(Path(os.environ.get("DATA_RESULTS_DIR", "data/results")) / "workspace"))
@@ -76,7 +76,7 @@ class RDAgentSettings(ExtendedBaseSettings):
     # multi processing conf
     multi_proc_n: int = 1
 
-    # pickle cache conf - 从环境变量 PICKLE_CACHE_FOLDER_PATH_STR 读取
+    # pickle cache conf: from env PICKLE_CACHE_FOLDER_PATH_STR
     cache_with_pickle: bool = True  # whether to use pickle cache
     pickle_cache_folder_path_str: str = os.environ.get(
         "PICKLE_CACHE_FOLDER_PATH_STR",

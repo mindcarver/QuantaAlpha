@@ -82,7 +82,7 @@ class Graph(KnowledgeBase):
     @staticmethod
     def batch_embedding(nodes: list[Node]) -> list[Node]:
         contents = [node.content for node in nodes]
-        # 使用配置的批次大小，避免硬编码
+        # Use configured batch size
         from quantaalpha.llm.config import LLM_SETTINGS
         size = LLM_SETTINGS.embedding_max_str_num
         embeddings = []
@@ -142,7 +142,7 @@ class UndirectedGraph(Graph):
                 self.nodes.update({node.id: node})
             except Exception as e:
                 from quantaalpha.log import logger as _kg_logger
-                _kg_logger.warning(f"知识图谱节点 embedding 创建失败，跳过该节点: {e}")
+                _kg_logger.warning(f"Graph node embedding failed, skip: {e}")
                 return
 
         if neighbor is not None:
@@ -157,7 +157,7 @@ class UndirectedGraph(Graph):
                     self.nodes.update({neighbor.id: neighbor})
                 except Exception as e:
                     from quantaalpha.log import logger as _kg_logger
-                    _kg_logger.warning(f"知识图谱邻居节点 embedding 创建失败，跳过: {e}")
+                    _kg_logger.warning(f"Graph neighbor embedding failed, skip: {e}")
                     return
 
             node.add_neighbor(neighbor)

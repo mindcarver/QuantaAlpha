@@ -61,7 +61,7 @@ class MultiProcessEvolvingStrategy(EvolvingStrategy):
         queried_knowledge: CoSTEERQueriedKnowledge | None = None,
         **kwargs,
     ) -> EvolvingItem:
-        # 1.找出需要evolve的task
+        # Find tasks to evolve
         to_be_finished_task_index = []
         for index, target_task in enumerate(evo.sub_tasks):
             target_task_desc = target_task.get_task_information()
@@ -75,8 +75,7 @@ class MultiProcessEvolvingStrategy(EvolvingStrategy):
             ):
                 to_be_finished_task_index.append(index)
 
-        # 2. 选择selection方法
-        # if the number of factors to be implemented is larger than the limit, we need to select some of them
+        # Selection: if over limit, select a subset
 
         if self.settings.select_threshold < len(to_be_finished_task_index):
             # Select a fixed number of factors if the total exceeds the threshold

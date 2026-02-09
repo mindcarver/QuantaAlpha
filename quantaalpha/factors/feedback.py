@@ -16,7 +16,7 @@ from quantaalpha.log import logger
 from quantaalpha.llm.client import APIBackend, robust_json_parse
 from quantaalpha.utils import convert2bool
 
-# JSON 解析最大重试次数
+# Max retries for JSON parsing
 MAX_JSON_PARSE_RETRIES = 3
 
 base_feedback_prompts = Prompts(file_path=Path(__file__).parent / "prompts" / "prompts.yaml")
@@ -179,19 +179,18 @@ class QlibFactorHypothesisExperiment2Feedback(HypothesisExperiment2Feedback):
                 break
             except json.JSONDecodeError as e:
                 last_error = e
-                logger.warning(f"[QuantaAlpha] JSON 解析失败 (尝试 {attempt + 1}/{MAX_JSON_PARSE_RETRIES}): {e}")
+                logger.warning(f"[QuantaAlpha] JSON parse failed (attempt {attempt + 1}/{MAX_JSON_PARSE_RETRIES}): {e}")
                 if attempt < MAX_JSON_PARSE_RETRIES - 1:
-                    logger.info("[QuantaAlpha] 重新请求 LLM...")
+                    logger.info("[QuantaAlpha] Re-requesting LLM...")
                 continue
         
         if response_json is None:
-            logger.error(f"[QuantaAlpha] JSON 解析在 {MAX_JSON_PARSE_RETRIES} 次尝试后仍然失败")
-            # 返回默认反馈而不是崩溃
+            logger.error(f"[QuantaAlpha] JSON parse still failed after {MAX_JSON_PARSE_RETRIES} attempts")
             return HypothesisFeedback(
-                observations="JSON 解析失败，无法提取反馈",
-                hypothesis_evaluation="无法评估",
+                observations="JSON parse failed; could not extract feedback",
+                hypothesis_evaluation="Unable to evaluate",
                 new_hypothesis="",
-                reason=f"JSON 解析错误: {last_error}",
+                reason=f"JSON parse error: {last_error}",
                 decision=False,
             )
 
@@ -309,19 +308,18 @@ class AlphaAgentQlibFactorHypothesisExperiment2Feedback(HypothesisExperiment2Fee
                 break
             except json.JSONDecodeError as e:
                 last_error = e
-                logger.warning(f"[AlphaAgent] JSON 解析失败 (尝试 {attempt + 1}/{MAX_JSON_PARSE_RETRIES}): {e}")
+                logger.warning(f"[AlphaAgent] JSON parse failed (attempt {attempt + 1}/{MAX_JSON_PARSE_RETRIES}): {e}")
                 if attempt < MAX_JSON_PARSE_RETRIES - 1:
-                    logger.info("[AlphaAgent] 重新请求 LLM...")
+                    logger.info("[AlphaAgent] Re-requesting LLM...")
                 continue
         
         if response_json is None:
-            logger.error(f"[AlphaAgent] JSON 解析在 {MAX_JSON_PARSE_RETRIES} 次尝试后仍然失败")
-            # 返回默认反馈而不是崩溃
+            logger.error(f"[AlphaAgent] JSON parse still failed after {MAX_JSON_PARSE_RETRIES} attempts")
             return HypothesisFeedback(
-                observations="JSON 解析失败，无法提取反馈",
-                hypothesis_evaluation="无法评估",
+                observations="JSON parse failed; could not extract feedback",
+                hypothesis_evaluation="Unable to evaluate",
                 new_hypothesis="",
-                reason=f"JSON 解析错误: {last_error}",
+                reason=f"JSON parse error: {last_error}",
                 decision=False,
             )
 
@@ -388,18 +386,18 @@ class QlibModelHypothesisExperiment2Feedback(HypothesisExperiment2Feedback):
                 break
             except json.JSONDecodeError as e:
                 last_error = e
-                logger.warning(f"[Model] JSON 解析失败 (尝试 {attempt + 1}/{MAX_JSON_PARSE_RETRIES}): {e}")
+                logger.warning(f"[Model] JSON parse failed (attempt {attempt + 1}/{MAX_JSON_PARSE_RETRIES}): {e}")
                 if attempt < MAX_JSON_PARSE_RETRIES - 1:
-                    logger.info("[Model] 重新请求 LLM...")
+                    logger.info("[Model] Re-requesting LLM...")
                 continue
         
         if response_json_hypothesis is None:
-            logger.error(f"[Model] JSON 解析在 {MAX_JSON_PARSE_RETRIES} 次尝试后仍然失败")
+            logger.error(f"[Model] JSON parse still failed after {MAX_JSON_PARSE_RETRIES} attempts")
             return HypothesisFeedback(
-                observations="JSON 解析失败，无法提取反馈",
-                hypothesis_evaluation="无法评估",
+                observations="JSON parse failed; could not extract feedback",
+                hypothesis_evaluation="Unable to evaluate",
                 new_hypothesis="",
-                reason=f"JSON 解析错误: {last_error}",
+                reason=f"JSON parse error: {last_error}",
                 decision=False,
             )
         
