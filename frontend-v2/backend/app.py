@@ -60,6 +60,7 @@ class MiningStartRequest(BaseModel):
     factorsPerHypothesis: Optional[int] = Field(3, description="Factors per hypothesis")
     librarySuffix: Optional[str] = Field(None, description="Factor library file suffix")
     qualityGateEnabled: Optional[bool] = Field(None, description="Enable quality gate checks")
+    parallelEnabled: Optional[bool] = Field(None, description="Enable parallel execution within evolution phases")
 
 
 class BacktestStartRequest(BaseModel):
@@ -240,6 +241,11 @@ async def _run_mining(task_id: str, req: MiningStartRequest):
                 run_cfg.setdefault("execution", {})["max_loops"] = req.maxLoops
             if req.factorsPerHypothesis is not None:
                 run_cfg.setdefault("factor", {})["factors_per_hypothesis"] = req.factorsPerHypothesis
+
+            # Apply parallel execution override from frontend
+            if req.parallelEnabled is not None:
+                run_cfg.setdefault("evolution", {})["parallel_enabled"] = req.parallelEnabled
+                run_cfg.setdefault("execution", {})["parallel_execution"] = req.parallelEnabled
 
             # Apply quality gate override from frontend
             if req.qualityGateEnabled is not None:

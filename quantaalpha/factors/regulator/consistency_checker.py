@@ -373,7 +373,6 @@ class FactorQualityGate:
         complexity_enabled: bool = True,
         redundancy_enabled: bool = True
     ):
-        """
         """Args: consistency_checker, complexity_checker, redundancy_checker, *_enabled flags."""
         self.consistency_checker = consistency_checker or FactorConsistencyChecker(enabled=consistency_enabled)
         self.complexity_checker = complexity_checker or ComplexityChecker(enabled=complexity_enabled)

@@ -241,6 +241,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
           maxRounds: config.maxRounds || defaults.defaultMaxRounds || 3,
           librarySuffix: config.librarySuffix || defaults.defaultLibrarySuffix || undefined,
           qualityGateEnabled: config.qualityGateEnabled ?? defaults.qualityGateEnabled ?? true,
+          parallelEnabled: config.parallelExecution ?? defaults.parallelExecution ?? false,
         });
         if (!resp.success || !resp.data) throw new Error(resp.error || 'Failed');
 

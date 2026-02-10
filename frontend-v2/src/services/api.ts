@@ -41,6 +41,7 @@ export interface MiningStartParams {
   factorsPerHypothesis?: number;
   librarySuffix?: string;
   qualityGateEnabled?: boolean;
+  parallelEnabled?: boolean;
 }
 
 export async function startMining(params: MiningStartParams) {
