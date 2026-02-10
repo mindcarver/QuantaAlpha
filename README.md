@@ -13,7 +13,7 @@
   </p>
 
   <p style="margin: 20px 0;">
-    <a href="https://arxiv.org/abs/2601.06789"><img src="https://img.shields.io/badge/arXiv-2601.06789-b31b1b.svg?style=flat-square&logo=arxiv&logoColor=white" /></a>
+    <a href="https://arxiv.org/abs/2602.07085"><img src="https://img.shields.io/badge/arXiv-2601.06789-b31b1b.svg?style=flat-square&logo=arxiv&logoColor=white" /></a>
     <a href="#"><img src="https://img.shields.io/badge/License-MIT-00A98F.svg?style=flat-square&logo=opensourceinitiative&logoColor=white" /></a>
     <a href="#"><img src="https://img.shields.io/badge/Python-3.10+-3776AB.svg?style=flat-square&logo=python&logoColor=white" /></a>
     <a href="https://github.com/QuantaAlpha/QuantaAlpha"><img src="https://img.shields.io/github/stars/QuantaAlpha/QuantaAlpha?style=flat-square&logo=github&logoColor=white&color=yellow" /></a>
@@ -322,13 +322,14 @@ We look forward to hearing from you!
 If you find QuantaAlpha useful in your research, please cite our work:
 
 ```bibtex
-@article{zhang2025quantaalpha,
-  title={QuantaAlpha: LLM-Driven Self-Evolving Framework for Factor Mining},
-  author={Shuo Zhang and others},
-  journal={arXiv preprint arXiv:2601.06789},
-  year={2025},
-  doi={10.48550/arXiv.2601.06789},
-  url={https://arxiv.org/abs/2601.06789}
+@misc{han2026quantaalphaevolutionaryframeworkllmdriven,
+      title={QuantaAlpha: An Evolutionary Framework for LLM-Driven Alpha Mining}, 
+      author={Jun Han and Shuo Zhang and Wei Li and Zhi Yang and Yifan Dong and Tu Hu and Jialuo Yuan and Xiaomin Yu and Yumo Zhu and Fangqi Lou and Xin Guo and Zhaowei Liu and Tianyi Jiang and Ruichuan An and Jingping Liu and Biao Wu and Rongze Chen and Kunyi Wang and Yifan Wang and Sen Hu and Xinbing Kong and Liwen Zhang and Ronghao Chen and Huacan Wang},
+      year={2026},
+      eprint={2602.07085},
+      archivePrefix={arXiv},
+      primaryClass={q-fin.ST},
+      url={https://arxiv.org/abs/2602.07085}, 
 }
 ```
 
