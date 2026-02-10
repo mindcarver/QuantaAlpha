@@ -66,8 +66,8 @@ port_analysis_config: &port_analysis_config
             topk: 50
             n_drop: 5
     backtest:
-        start_time: 2022-01-01
-        end_time: 2022-12-31
+        start_time: 2021-01-01
+        end_time: 2021-12-31
         account: 100000000
         benchmark: *benchmark
         exchange_kwargs:
@@ -104,9 +104,9 @@ task:
                 module_path: qlib.contrib.data.handler
                 kwargs: *data_handler_config
             segments:
-                train: [2016-01-01, 2020-12-31]
-                valid: [2021-01-01, 2021-12-31]
-                test: [2022-01-01, 2025-12-26]
+                train: [2016-01-01, 2019-12-31]
+                valid: [2020-01-01, 2020-12-31]
+                test: [2021-01-01, 2025-12-26]
 
     record:
         - class: SignalRecord
