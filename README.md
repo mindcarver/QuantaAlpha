@@ -131,7 +131,20 @@ OPENAI_API_KEY=your-api-key
 OPENAI_BASE_URL=https://your-llm-provider/v1   # e.g. DashScope, OpenAI
 CHAT_MODEL=deepseek-v3                         # or gpt-4, qwen-max, etc.
 REASONING_MODEL=deepseek-v3
+
+# === Optional: ACP Backend (OpenCode + SiliconFlow) ===
+# Use OpenCode via ACP for chat completion instead of direct LLM API
+USE_ACP_BACKEND=false                          # Set true to enable ACP
+ACP_AGENT_COMMAND=opencode                      # Command to spawn ACP agent
+ACP_AGENT_ARGS=acp                              # Arguments for ACP agent
+# Embedding via SiliconFlow API (when ACP is enabled)
+EXTERNAL_EMBEDDING_API=https://api.siliconflow.cn/v1/embeddings
+EXTERNAL_EMBEDDING_API_KEY=your-siliconflow-key
+EXTERNAL_EMBEDDING_MODEL=Pro/BAAI/bge-m3        # Recommended: 1024 dims, 8192 tokens
+EMBEDDING_BATCH_SIZE=10                         # Batch size for embedding requests
 ```
+
+> **📘 ACP Backend**: QuantaAlpha now supports [ACP (Agent Client Protocol)](docs/ACP_ARCHITECTURE.md) integration with [OpenCode](https://github.com/RndmVariableQ/AlphaAgent) for LLM chat completion and SiliconFlow for embeddings. See [ACP Quick Start](docs/ACP_QUICKSTART.md) for details.
 
 ### 3. Prepare Data
 
@@ -237,6 +250,49 @@ python -m quantaalpha.backtest.run_backtest \
 Results are saved to the directory specified in `configs/backtest.yaml` (`experiment.output_dir`).
 
 > 📘 Need help? Check our comprehensive **[User Guide](docs/user_guide.md)** for advanced configuration, experiment reproduction, and detailed usage examples.
+>
+> 🔌 **ACP Integration**: Learn how to use OpenCode + SiliconFlow as an alternative LLM backend:
+> - [ACP Quick Start Guide](docs/ACP_QUICKSTART.md) - Get started in 5 minutes
+> - [ACP Architecture](docs/ACP_ARCHITECTURE.md) - System design and integration details
+> - [SiliconFlow Configuration](docs/ACP_SILICONFLOW_CONFIG.md) - Model selection and API setup
+
+---
+
+## 🔌 ACP Backend (Alternative LLM Integration)
+
+QuantaAlpha now supports **ACP (Agent Client Protocol)** integration, allowing you to use [OpenCode](https://github.com/RndmVariableQ/AlphaAgent) for chat completion and [SiliconFlow](https://siliconflow.cn) for embeddings — as an alternative to direct LLM API calls.
+
+### Quick Setup
+
+```bash
+# 1. Install OpenCode (required for ACP)
+pip install opencode
+
+# 2. Configure environment variables in .env
+export USE_ACP_BACKEND=true
+export EXTERNAL_EMBEDDING_API=https://api.siliconflow.cn/v1/embeddings
+export EXTERNAL_EMBEDDING_API_KEY=your-siliconflow-key
+export EXTERNAL_EMBEDDING_MODEL=Pro/BAAI/bge-m3
+
+# 3. Run with ACP backend enabled
+python -c "from quantaalpha.llm.acp_patch import patch_apibackend; patch_apibackend()"
+./run.sh "Price-Volume Factor Mining"
+```
+
+### Benefits
+
+| Feature | Direct LLM API | ACP Backend |
+| :--- | :--- | :--- |
+| **Chat Completion** | OpenAI/DeepSeek/etc. | OpenCode (local agent) |
+| **Embedding** | Same provider | SiliconFlow (BGE-M3, 1024 dims) |
+| **Cost** | Per-token billing | potentially lower cost |
+| **Privacy** | Cloud API | Local processing (OpenCode) |
+
+### Documentation
+
+- 📘 [ACP Quick Start](docs/ACP_QUICKSTART.md) - Get started in 5 minutes
+- 🏗️ [ACP Architecture](docs/ACP_ARCHITECTURE.md) - System design details
+- ⚙️ [SiliconFlow Config](docs/ACP_SILICONFLOW_CONFIG.md) - Model selection guide
 
 ---
 

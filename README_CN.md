@@ -120,7 +120,20 @@ OPENAI_API_KEY=your-api-key
 OPENAI_BASE_URL=https://your-llm-provider/v1   # 如: DashScope, OpenAI
 CHAT_MODEL=deepseek-v3                         # 或 gpt-4, qwen-max 等
 REASONING_MODEL=deepseek-v3
+
+# === 可选：ACP 后端 (OpenCode + 硅基流动) ===
+# 使用 ACP 调用 OpenCode 进行对话，替代直接 LLM API 调用
+USE_ACP_BACKEND=false                          # 设为 true 启用 ACP
+ACP_AGENT_COMMAND=opencode                      # 启动 ACP agent 的命令
+ACP_AGENT_ARGS=acp                              # ACP agent 的参数
+# 使用硅基流动 API 进行 embedding（当 ACP 启用时）
+EXTERNAL_EMBEDDING_API=https://api.siliconflow.cn/v1/embeddings
+EXTERNAL_EMBEDDING_API_KEY=your-siliconflow-key
+EXTERNAL_EMBEDDING_MODEL=Pro/BAAI/bge-m3        # 推荐：1024 维，8192 tokens
+EMBEDDING_BATCH_SIZE=10                         # embedding 批处理大小
 ```
+
+> **📘 ACP 后端**：QuantaAlpha 现已支持通过 [ACP (Agent Client Protocol)](docs/ACP_ARCHITECTURE.md) 集成 [OpenCode](https://github.com/RndmVariableQ/AlphaAgent) 进行对话，使用硅基流动进行 embedding。详见 [ACP 快速入门](docs/ACP_QUICKSTART.md)。
 
 ### 3. 准备数据
 
@@ -227,6 +240,44 @@ python -m quantaalpha.backtest.run_backtest \
 结果保存在 `configs/backtest.yaml` 中 `experiment.output_dir` 指定的目录。
 
 > 📘 需要帮助？请查阅完整的 **[用户指南](docs/user_guide.md)**，了解高级配置、实验复现和详细使用示例。
+
+---
+
+## 🔌 ACP 后端 (可选的 LLM 集成方式)
+
+QuantaAlpha 现已支持 **ACP (Agent Client Protocol)** 集成，允许你使用 [OpenCode](https://github.com/RndmVariableQ/AlphaAgent) 进行对话，使用 [硅基流动](https://siliconflow.cn) 进行 embedding — 作为直接 LLM API 调用的替代方案。
+
+### 快速配置
+
+```bash
+# 1. 安装 OpenCode（ACP 需要）
+pip install opencode
+
+# 2. 在 .env 中配置环境变量
+export USE_ACP_BACKEND=true
+export EXTERNAL_EMBEDDING_API=https://api.siliconflow.cn/v1/embeddings
+export EXTERNAL_EMBEDDING_API_KEY=your-siliconflow-key
+export EXTERNAL_EMBEDDING_MODEL=Pro/BAAI/bge-m3
+
+# 3. 使用 ACP 后端运行
+python -c "from quantaalpha.llm.acp_patch import patch_apibackend; patch_apibackend()"
+./run.sh "价量因子挖掘"
+```
+
+### 对比
+
+| 特性 | 直接 LLM API | ACP 后端 |
+| :--- | :--- | :--- |
+| **对话完成** | OpenAI/DeepSeek 等 | OpenCode (本地 agent) |
+| **Embedding** | 同提供方 | 硅基流动 (BGE-M3, 1024 维) |
+| **成本** | 按 token 计费 | 可能更低的成本 |
+| **隐私** | 云端 API | 本地处理 (OpenCode) |
+
+### 文档
+
+- 📘 [ACP 快速入门](docs/ACP_QUICKSTART.md) - 5 分钟快速上手
+- 🏗️ [ACP 架构说明](docs/ACP_ARCHITECTURE.md) - 系统设计细节
+- ⚙️ [硅基流动配置](docs/ACP_SILICONFLOW_CONFIG.md) - 模型选择指南
 
 ---
 
