@@ -40,16 +40,18 @@ class BacktestRunner:
             return
         import os
         import qlib
+        from qlib.config import REG_CN, REG_US
         provider_uri = (
             os.environ.get('QLIB_DATA_DIR')
             or os.environ.get('QLIB_PROVIDER_URI')
             or self.config['data']['provider_uri']
         )
         provider_uri = os.path.expanduser(provider_uri)
-        region = self.config['data'].get('region', 'cn')
+        region_str = self.config['data'].get('region', 'cn')
+        region = REG_US if region_str == 'us' else REG_CN
         qlib.init(provider_uri=provider_uri, region=region)
         self._qlib_initialized = True
-        logger.info(f"Qlib initialized: {provider_uri} (region={region})")
+        logger.info(f"Qlib initialized: {provider_uri} (region={region_str})")
 
     def run(self,
             factor_source: Optional[str] = None,

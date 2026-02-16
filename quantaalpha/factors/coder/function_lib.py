@@ -986,3 +986,72 @@ def BB_LOWER(price_df, window, n_jobs=-1):
         std = pd.concat([result for _, result in sorted(results, key=lambda x: x[0])])
     
     return middle_band - std
+
+
+# Additional functions for hybrid factor testing
+
+@datatype_adapter
+def Mean(df: pd.DataFrame, p: int = 5):
+    """Rolling mean (alias for TS_MEAN)."""
+    return df.groupby('instrument').transform(lambda x: x.rolling(p, min_periods=1).mean())
+
+@datatype_adapter
+def Ref(df: pd.DataFrame, p: int = 1):
+    """Reference value p periods ago (alias for DELAY)."""
+    return df.groupby('instrument').transform(lambda x: x.shift(p))
+
+@datatype_adapter
+def Rsquare(df: pd.DataFrame, p: int = 20):
+    """R-squared of linear regression over p days - measures trend stability."""
+    def calc_rsquared(group):
+        result = np.empty(len(group))
+        result[:] = np.nan
+
+        for i in range(p - 1, len(group)):
+            window = group.iloc[i - p + 1 : i + 1].values
+            x = np.arange(p)
+            y = window
+
+            # Remove NaN values
+            mask = ~np.isnan(y)
+            if mask.sum() < 3:
+                result[i] = np.nan
+                continue
+
+            x_clean = x[mask]
+            y_clean = y[mask]
+
+            # Linear regression: y = a*x + b
+            if len(x_clean) >= 3:
+                try:
+                    # Calculate R-squared
+                    y_mean = np.mean(y_clean)
+                    ss_tot = np.sum((y_clean - y_mean) ** 2)
+
+                    # Fit linear regression
+                    coeffs = np.polyfit(x_clean, y_clean, 1)
+                    y_pred = np.polyval(coeffs, x_clean)
+                    ss_res = np.sum((y_clean - y_pred) ** 2)
+
+                    if ss_tot > 0:
+                        r2 = 1 - (ss_res / ss_tot)
+                    else:
+                        r2 = 0
+
+                    result[i] = r2
+                except:
+                    result[i] = np.nan
+
+        return pd.Series(result, index=group.index)
+
+    return df.groupby('instrument').transform(calc_rsquared)
+
+@datatype_adapter
+def Greater(df: pd.DataFrame, threshold: float = 0):
+    """Element-wise greater than threshold, returns 1 if true else 0."""
+    return (df > threshold).astype(int)
+
+@datatype_adapter
+def Sum(df: pd.DataFrame, p: int = 5):
+    """Rolling sum (alias for TS_SUM)."""
+    return df.groupby('instrument').transform(lambda x: x.rolling(p, min_periods=1).sum())

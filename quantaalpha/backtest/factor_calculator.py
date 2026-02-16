@@ -369,7 +369,7 @@ class QlibDataProvider:
         region_str = self.data_config.get('region', 'cn')
         region = REG_US if region_str == 'us' else REG_CN
         
-        qlib.init(provider_uri=provider_uri, region=region)
+        qlib.qlib.init(provider_uri=provider_uri, region=region)
         self._initialized = True
         logger.info(f"Qlib initialized: {provider_uri} (region={region_str})")
         

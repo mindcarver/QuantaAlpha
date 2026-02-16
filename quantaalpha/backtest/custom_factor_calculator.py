@@ -563,9 +563,11 @@ def get_qlib_stock_data(config: Dict) -> pd.DataFrame:
         or data_config.get('provider_uri', os.path.expanduser('~/.qlib/qlib_data/cn_data'))
     )
     provider_uri = os.path.expanduser(provider_uri)
-    region = data_config.get('region', 'cn')
-    
+    region_str = data_config.get('region', 'cn')
+
     try:
+        from qlib.config import REG_CN, REG_US
+        region = REG_US if region_str == 'us' else REG_CN
         qlib.init(provider_uri=provider_uri, region=region)
     except Exception:
         pass  # Already initialized

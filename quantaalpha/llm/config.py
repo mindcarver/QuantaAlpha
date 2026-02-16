@@ -64,5 +64,14 @@ class LLMSettings(ExtendedBaseSettings):
 
     chat_model_map: str = "{}"
 
+    # ACP (Agent Client Protocol) Backend
+    use_acp_backend: bool = False
+    acp_agent_command: str = "opencode"
+    acp_agent_args: str = "acp"
+    external_embedding_api: str = ""
+    external_embedding_api_key: str = ""
+    external_embedding_model: str = "Pro/BAAI/bge-m3"
+    embedding_batch_size: int = 10
+
 
 LLM_SETTINGS = LLMSettings()
