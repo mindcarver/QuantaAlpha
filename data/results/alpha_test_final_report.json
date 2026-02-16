@@ -17,10 +17,19 @@
     "volatility": {
       "rank": 4,
       "sharpe_ratio": 0.68,
+      "ic": 0.0243,
+      "icir": 0.1541,
+      "rank_ic": 0.0223,
+      "rank_icir": 0.1400,
       "total_return": "N/A",
       "max_drawdown": "N/A",
       "factors": ["STD5", "KLEN", "VSTD5"],
-      "characteristics": "捕捉价格波动，高波动市场优势"
+      "factor_descriptions": {
+        "STD5": "5日收盘价标准差/收盘价 - 纯价格波动幅度",
+        "KLEN": "(最高价-最低价)/开盘价 - 日内K线长度",
+        "VSTD5": "5日成交量标准差/成交量 - 资金流向稳定性"
+      },
+      "characteristics": "捕捉价格波动，IC值较低(0.0243)，高波动市场有一定优势"
     },
     "volume_price": {
       "rank": 1,
