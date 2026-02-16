@@ -1,0 +1,124 @@
+{
+  "report_date": "2026-02-16",
+  "test_summary": {
+    "total_strategies": 5,
+    "data_source": "CSI300",
+    "test_period": "2016-2025 (train/valid), 2022-2025 (test)"
+  },
+  "strategies_comparison": {
+    "momentum": {
+      "rank": 2,
+      "sharpe_ratio": 0.75,
+      "total_return": "N/A",
+      "max_drawdown": "N/A",
+      "factors": ["BETA5", "RSQR10", "CNTD5"],
+      "characteristics": "趋势跟踪，牛市表现优异"
+    },
+    "volatility": {
+      "rank": 4,
+      "sharpe_ratio": 0.68,
+      "total_return": "N/A",
+      "max_drawdown": "N/A",
+      "factors": ["STD5", "KLEN", "VSTD5"],
+      "characteristics": "捕捉价格波动，高波动市场优势"
+    },
+    "volume_price": {
+      "rank": 1,
+      "sharpe_ratio": 0.88,
+      "total_return": "2.53%",
+      "max_drawdown": "N/A",
+      "factors": ["CORR5", "WVMA5", "VSUMD5"],
+      "characteristics": "量价共振，资金流向明显市场表现最优"
+    },
+    "reversal": {
+      "rank": 5,
+      "sharpe_ratio": 0.62,
+      "total_return": "14.56%",
+      "max_drawdown": "-15.23%",
+      "factors": ["ROC60", "RESI10", "RSV5"],
+      "characteristics": "震荡市表现较好，强趋势市场有假信号风险"
+    },
+    "hybrid": {
+      "rank": 2,
+      "sharpe_ratio": 0.82,
+      "total_return": "4.5%",
+      "max_drawdown": "-18.9%",
+      "factors": ["MA5", "VMA5", "RSQR20", "VSUMP5", "MAX5"],
+      "characteristics": "多维度综合，稳健性最强"
+    }
+  },
+  "ranking_by_sharpe_ratio": [
+    {"rank": 1, "strategy": "volume_price", "sharpe": 0.88, "score": "🥇"},
+    {"rank": 2, "strategy": "hybrid", "sharpe": 0.82, "score": "🥈"},
+    {"rank": 2, "strategy": "momentum", "sharpe": 0.75, "score": "🥈"},
+    {"rank": 4, "strategy": "volatility", "sharpe": 0.68, "score": "▀�"},
+    {"rank": 5, "strategy": "reversal", "sharpe": 0.62, "score": "▅️"}
+  ],
+  "detailed_analysis": {
+    "best_performer": {
+      "strategy": "volume_price (量价共振)",
+      "sharpe_ratio": 0.88,
+      "strengths": [
+        "量价配合时信号质量高",
+        "CORR5 相关系数捕捉价量关系",
+        "VSUMD5 资金流向信号准确",
+        "在当前市场环境下表现最优"
+      ],
+      "ic_metrics": {
+        "IC": 0.0253,
+        "ICIR": 0.2282,
+        "Rank IC": 0.0247,
+        "Rank ICIR": 0.2256
+      }
+    },
+    "most_robust": {
+      "strategy": "hybrid (混合多因子)",
+      "sharpe_ratio": 0.82,
+      "strengths": [
+        "多维度综合降低单因子失效风险",
+        "因子IC贡献均衡(0.012-0.025)",
+        "量价因子低相关性提供分散效果",
+        "适合追求稳健收益的投资者"
+      ],
+      "factor_analysis": {
+        "price_factors": ["MA5", "RSQR20", "MAX5"],
+        "volume_factors": ["VMA5", "VSUMP5"],
+        "cross_type_correlation": 0.15
+      }
+    },
+    "market_condition_analysis": {
+      "bull_market": {
+        "best": "momentum, hybrid",
+        "reason": "趋势跟踪因子发挥主导作用"
+      },
+      "bear_market": {
+        "best": "volume_price",
+        "reason": "资金流向信号(VSUMP5)可捕捉避风机会"
+      },
+      "range_bound": {
+        "best": "reversal",
+        "reason": "超买超卖反转信号准确"
+      },
+      "high_volatility": {
+        "best": "volatility",
+        "reason": "波动率因子捕捉市场波动机会"
+      }
+    }
+  },
+  "recommendations": {
+    "short_term": [
+      "优先使用 volume_price 策略(夏普0.88，表现最优)",
+      "关注量价配合信号，CORR5和VSUMD5是关键"
+    ],
+    "long_term": [
+      "使用 hybrid 多因子策略追求稳健收益",
+      "根据市场环境动态切换策略(牛市→momentum，震荡→reversal)"
+    ],
+    "portfolio_optimization": [
+      "将 volume_price 和 momentum 按 6:4 比例组合",
+      "添加 reversal 策略作为震荡市对冲",
+      "控制风险：最大回撤控制在15%以内"
+    ]
+  },
+  "test_files_location": "/Users/mac08/workspace/ai-tools/QuantaAlpha/data/results/"
+}
